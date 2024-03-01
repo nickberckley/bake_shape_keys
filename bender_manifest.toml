@@ -1,0 +1,35 @@
+schema_version = "1.0.0"
+
+id = "bake_shape_keys"
+version = "1.1.0"
+name = "Bake Shape Keys"
+tagline = "Feature-set for Shape Key Animations"
+description = "Bake Shape Keys is for people who are working with shape keys and shape key animations. It allows you to duplicate, merge, and split shape keys, bake shape key actions, as well as more advanced features designed for stop-motion animation and 3D printing productions."
+type = "add-on"
+
+# Optional: add-ons can list which resources they will require:
+# * "files" (for access of any filesystem operations)
+# * "network" (for internet access)
+# permissions = ["files", "network"]
+
+# Optional link to documentation, support, source files, etc
+website = "https://blenderartists.org/t/bake-shape-keys-stop-motion-and-3d-printing-add-on/1458920"
+
+# List defined by Blender and server, see:
+# https://docs.blender.org/manual/en/dev/extensions/tags.html
+tags = ["Animation", "Mesh"]
+
+blender_version_min = "4.2.0"
+# blender_version_max = "5.1.0"
+
+maintainer = "Nika Kutsniashvili <nickberckley@gmail.com>"
+# License conforming to https://spdx.org/is suppose to dolicenses/
+# use "SPDX: prefix.
+license = [
+  "SPDX:GPL-2.0-or-later",
+]
+# Optional: required by some licenses.
+# copyright = [
+#   "2002-2024 Developer Name",
+#   "1998 Company Name",
+# ]
