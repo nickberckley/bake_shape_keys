@@ -3,8 +3,8 @@ import bpy
 
 ##### ---------------------------------- OPERATORS ---------------------------------- #####
 
-class OBJECT_OT_insert_keyframe_shape_key(bpy.types.Operator):
-    bl_idname = "object.add_shape_key_keyframe_operator"
+class MESH_OT_shape_key_keyframe_all(bpy.types.Operator):
+    bl_idname = "object.shape_key_keyframe_all"
     bl_label = "Insert Keyframe for All Shape Keys"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -14,49 +14,50 @@ class OBJECT_OT_insert_keyframe_shape_key(bpy.types.Operator):
 
     def execute(self, context):
         for shape_key in context.object.data.shape_keys.key_blocks:
-            if shape_key.name != 'Basis':
+            if shape_key.name != "Basis":
                 shape_key.keyframe_insert("value")
         return {'FINISHED'}
 
 
 
-class OBJECT_OT_bake_shape_keys_animation(bpy.types.Operator):
-    bl_idname = "object.bake_shape_key_animation"
+class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
+    bl_idname = "object.shape_key_action_bake"
     bl_label = "Bake Shape Key Action"
-    bl_description = "Insert keyframes for all Shape Keys on selected objects within frame range"
+    bl_description = "Insert keyframes for all shape keys on selected objects on every frame within frame range"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     follow_scene_range: bpy.props.BoolProperty(
-        name="Scene Frame Range",
-        description="Bake between frame range as defined in scene properties",
-        default=False
+        name = "Scene Frame Range",
+        description = "Bake between frame range start and end as defined in scene properties",
+        default = False,
     )
     start_frame: bpy.props.IntProperty(
-        name="Start Frame",
-        default=1, min=1
+        name = "Start Frame",
+        min = 1,
+        default = 1,
     )
     end_frame: bpy.props.IntProperty(
-        name="End Frame",
-        default=100, min=1
+        name = "End Frame",
+        min = 1,
+        default = 100,
     )
     step: bpy.props.IntProperty(
-        name="Step",
-        default=1, min=1, max=4
+        name = "Step",
+        min = 1, max = 4,
+        default = 1,
     )
-    
+
     even_odd_frames: bpy.props.EnumProperty(
-        name="Even/Odd Frames",
-        items=(
-            ("Even", "Even Frames", "Insert keyframes on even frames"),
-            ("Odd", "Odd Frames", "Insert keyframes on odd frames")
-        ),
-        default="Odd",
-        description="If Step is set to an even number you can choose to bake animation on either even or odd numbered frames"
+        name = "Even/Odd Frames",
+        items = (('EVEN', "Even Frames", "Insert keyframes on even frames only"),
+                ('ODD', "Odd Frames", "Insert keyframes on odd frames only")),
+        default = 'ODD',
+        description = "If frame step is set to an even number you can choose to bake animation on either even or odd numbered frames"
     )
     constant_interpolation: bpy.props.BoolProperty(
-        name="Constant Interpolation",
-        description="Inserted keyframes will have constant interpolation between them",
-        default=True
+        name = "Constant Interpolation",
+        description = "Inserted keyframes will have constant interpolation between them",
+        default = True
     )
 
     @classmethod
@@ -68,28 +69,30 @@ class OBJECT_OT_bake_shape_keys_animation(bpy.types.Operator):
 
     def execute(self, context):
         if self.follow_scene_range:
-            self.start_frame = bpy.context.scene.frame_start
-            self.end_frame = bpy.context.scene.frame_end
-            
-        for obj in bpy.context.selected_objects:
+            self.start_frame = context.scene.frame_start
+            self.end_frame = context.scene.frame_end
+
+        for obj in context.selected_objects:
             # Inserting Keyframes
             for key in obj.data.shape_keys.key_blocks:
-                if key.name != 'Basis':
+                if key.name != "Basis":
                     if self.step == 2:
-                        start = self.start_frame + (self.even_odd_frames == "Odd")
+                        start = self.start_frame + (self.even_odd_frames == "ODD")
                         for frame in range(start, self.end_frame+1, 2):
-                            bpy.context.scene.frame_set(frame)
-                            key.keyframe_insert(data_path='value', index=-1)
+                            context.scene.frame_set(frame)
+                            key.keyframe_insert(data_path="value", index=-1)
+
                     elif self.step == 4:
-                        start = self.start_frame + (self.even_odd_frames == "Odd")
+                        start = self.start_frame + (self.even_odd_frames == "ODD")
                         for frame in range(start, self.end_frame+1, 4):
-                            bpy.context.scene.frame_set(frame)
-                            key.keyframe_insert(data_path='value', index=-1)
+                            context.scene.frame_set(frame)
+                            key.keyframe_insert(data_path="value", index=-1)
+
                     else:
                         for frame in range(self.start_frame, self.end_frame+1, self.step):
-                            bpy.context.scene.frame_set(frame)
-                            key.keyframe_insert(data_path='value', index=-1)
-            
+                            context.scene.frame_set(frame)
+                            key.keyframe_insert(data_path="value", index=-1)
+
             # Constant Interpolation
             if self.constant_interpolation:
                 for fcurve in obj.data.shape_keys.animation_data.action.fcurves:
@@ -99,18 +102,19 @@ class OBJECT_OT_bake_shape_keys_animation(bpy.types.Operator):
                             if self.start_frame <= keyframe.co[0] <= self.end_frame:
                                 keyframe.interpolation = 'CONSTANT' 
         return {'FINISHED'}
-    
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
-        
+
+        # frame_range
         layout.prop(self, "follow_scene_range")
         col = layout.column(align=True)
         row = col.row()
         row.prop(self, "start_frame", text="Frame Range")
         row.prop(self, "end_frame", text="")
         layout.prop(self, "step")
+
         col2 = layout.column()
         col2.prop(self, "even_odd_frames")
         layout.prop(self, "constant_interpolation")
@@ -127,8 +131,8 @@ class OBJECT_OT_bake_shape_keys_animation(bpy.types.Operator):
 ##### ---------------------------------- REGISTERING ---------------------------------- #####
 
 classes = [
-    OBJECT_OT_insert_keyframe_shape_key,
-    OBJECT_OT_bake_shape_keys_animation,
+    MESH_OT_shape_key_keyframe_all,
+    OBJECT_OT_shape_key_action_bake,
 ]
 
 def register():

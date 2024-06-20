@@ -7,10 +7,10 @@ from ..functions.mesh import (
 
 ##### ---------------------------------- OPERATORS ---------------------------------- #####
 
-class MESH_OT_split_shape_key(bpy.types.Operator):
-    bl_idname = "mesh.split_shape_key"
-    bl_description = "Split active shape key into two parts based on edit mode selection"
+class MESH_OT_shape_key_split(bpy.types.Operator):
+    bl_idname = "mesh.shape_key_split"
     bl_label = "Split Shape Key"
+    bl_description = "Split active shape key into two parts based on edit mode selection"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -20,26 +20,26 @@ class MESH_OT_split_shape_key(bpy.types.Operator):
     def execute(self, context):
         obj = bpy.context.object
         if not any(v.select for v in obj.data.vertices):
-            self.report({'INFO'}, "Nothing is selected in Edit Mode")
+            self.report({'INFO'}, "Nothing is selected in edit mode")
             return {'CANCELLED'}
-        
+
         if obj.data.shape_keys.key_blocks.find(obj.active_shape_key.name) == 0:
-            self.report({'INFO'}, "This operation can't be performed on basis shape key")
+            self.report({'INFO'}, "Basis shape key can't be split")
             return {'CANCELLED'}
-        
+
         mode = bpy.context.object.mode
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.active_object.select_set(True)
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_mode(type='VERT')
-        
+
         # Create Vertex Groups 
         vertex_group_l = obj.vertex_groups.new(name="split_shape_key_left")
         selected_vertices = [v.index for v in obj.data.vertices if v.select]
         for vertex in selected_vertices:
             bpy.ops.object.vertex_group_assign()
-            
+
         bpy.ops.mesh.select_all(action='INVERT')
         vertex_group_r = obj.vertex_groups.new(name="split_shape_key_right")
         selected_vertices = [v.index for v in obj.data.vertices if v.select]
@@ -58,7 +58,7 @@ class MESH_OT_split_shape_key(bpy.types.Operator):
         max_value = saved_shape_key.slider_max
         original_vertex_group = saved_shape_key.vertex_group
         original_relation = saved_shape_key.relative_key
-        
+
         # Create Left Version
         bpy.ops.object.shape_key_clear()
         saved_shape_key.vertex_group = 'split_shape_key_left'
@@ -122,21 +122,21 @@ class MESH_OT_split_shape_key(bpy.types.Operator):
                 if fcurve.data_path == f'key_blocks["{original_name}"].value':
                     anim_data.action.fcurves.remove(fcurve)
                     break
-        
+
         # Remove Vertex Groups
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.object.vertex_group_set_active(group='split_shape_key_left')
+        bpy.ops.object.vertex_group_set_active(group="split_shape_key_left")
         bpy.ops.object.vertex_group_remove()
-        bpy.ops.object.vertex_group_set_active(group='split_shape_key_right')
+        bpy.ops.object.vertex_group_set_active(group="split_shape_key_right")
         bpy.ops.object.vertex_group_remove()
         bpy.ops.mesh.select_all(action='DESELECT')
-        
+
         # Restore Values
         for shape_key in obj.data.shape_keys.key_blocks:
             shape_key.value = values.get(shape_key.name, 0.0)
         obj.data.shape_keys.key_blocks[left_shape_key.name].value = original_value
         obj.data.shape_keys.key_blocks[right_shape_key.name].value = original_value
-        
+
         # Move Shape Keys to Correct Position in UI
         new_index = (len(obj.data.shape_keys.key_blocks) - active_index) - 2
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -145,7 +145,7 @@ class MESH_OT_split_shape_key(bpy.types.Operator):
             bpy.ops.object.shape_key_move(type='UP')
             set_active_shape_key(right_shape_key.name)
             bpy.ops.object.shape_key_move(type='UP')
-        
+
         bpy.ops.object.mode_set(mode=mode)
         set_active_shape_key(left_shape_key.name)
         return {'FINISHED'}
@@ -155,7 +155,7 @@ class MESH_OT_split_shape_key(bpy.types.Operator):
 ##### ---------------------------------- REGISTERING ---------------------------------- #####
 
 classes = [
-    MESH_OT_split_shape_key,
+    MESH_OT_shape_key_split,
 ]
 
 def register():

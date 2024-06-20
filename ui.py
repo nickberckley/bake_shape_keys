@@ -5,14 +5,16 @@ import bpy, os
 
 def bake_shape_keys_animation_menu(self, context):
     layout = self.layout
+    
+    # import_icons
     pcoll = preview_collections["main"]
     keyframe_shapekey = pcoll["keyframe_shapekey"]
     bake_shapekey = pcoll["bake_shapekey"]
 
-    if bpy.context.mode == "OBJECT":
+    if bpy.context.mode == 'OBJECT':
         layout.separator()
-        layout.operator("object.add_shape_key_keyframe_operator", text="Insert Keyframe for Shape Keys", icon_value=keyframe_shapekey.icon_id)
-        layout.operator("object.bake_shape_key_animation", icon_value=bake_shapekey.icon_id)
+        layout.operator("object.shape_key_keyframe_all", text="Insert Keyframe for Shape Keys", icon_value=keyframe_shapekey.icon_id)
+        layout.operator("object.shape_key_action_bake", icon_value=bake_shapekey.icon_id)
         layout.operator("object.objects_from_shape_keys")
 
 
@@ -39,13 +41,11 @@ def bake_shape_keys_animation_menu(self, context):
 
 def bake_shape_keys_panel_menu(self, context):
     layout = self.layout
-    active_object = bpy.context.active_object
-    preferences = bpy.context.preferences.addons[__package__].preferences
-    if preferences.show_shape_key_panel:
-        if active_object and active_object.data.shape_keys and len(active_object.data.shape_keys.key_blocks) >= 3:
-            layout.separator()
-            layout.operator("object.add_shape_key_keyframe_operator", text="Keyframe All Shape Keys")
-#            layout.operator("object.bake_shape_key_animation")
+    obj = bpy.context.active_object
+
+    if obj and obj.data.shape_keys and len(obj.data.shape_keys.key_blocks) >= 3:
+        layout.separator()
+        layout.operator("object.shape_key_keyframe_all", text="Keyframe All Shape Keys")
 
 
 
@@ -54,8 +54,8 @@ def bake_shape_keys_panel_menu(self, context):
 def shape_key_extras_top(self, context):
     if bpy.context.active_object is not None and bpy.context.active_object.type == 'MESH':
         layout = self.layout
-        layout.operator('mesh.duplicate_shape_key', icon="DUPLICATE")
-        layout.operator('mesh.split_shape_key', icon="SCULPTMODE_HLT")
+        layout.operator("mesh.shape_key_uplicate", icon='DUPLICATE')
+        layout.operator("mesh.shape_key_split", icon='SCULPTMODE_HLT')
 
 
 def shape_key_extras_bottom(self, context):
@@ -71,10 +71,10 @@ class MESH_MT_shape_key_merge(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator('mesh.merge_shape_keys_single', text='Merge Up', icon="TRIA_UP").direction='TOP'
-        layout.operator('mesh.merge_shape_keys', text='Merge Up (All the Way)', icon="SORT_DESC").direction='TOP'
-        layout.operator('mesh.merge_shape_keys', text='Merge Down (All the Way)', icon="SORT_ASC").direction='DOWN'
-        layout.operator('mesh.merge_shape_keys_single', text='Merge Down', icon="TRIA_DOWN").direction='DOWN'
+        layout.operator("mesh.shape_key_merge", text="Merge Up", icon='TRIA_UP').direction="TOP"
+        layout.operator("mesh.shape_key_merge_all", text="Merge Up (All the Way)", icon='SORT_DESC').direction="TOP"
+        layout.operator("mesh.shape_key_merge_all", text="Merge Down (All the Way)", icon='SORT_ASC').direction="DOWN"
+        layout.operator("mesh.shape_key_merge", text="Merge Down", icon='TRIA_DOWN').direction="DOWN"
 
 
 
