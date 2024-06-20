@@ -1,7 +1,9 @@
 import bpy
 from ..functions.mesh import (
     set_active_shape_key,
-    remember_shape_key_values,
+    store_shape_keys,
+    store_active_shape_key,
+    set_shape_key_values,
 )
 
 
@@ -29,16 +31,9 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
         obj.select_set(True)
 
         # Store Values
-        shape_keys = obj.data.shape_keys.key_blocks
-        values = remember_shape_key_values(self, context, obj)
-        active_index = shape_keys.find(obj.active_shape_key.name)
-        saved_shape_key = shape_keys[active_index]
-        original_name = saved_shape_key.name
-        original_value = saved_shape_key.value
-        min_value = saved_shape_key.slider_min
-        max_value = saved_shape_key.slider_max
-        original_vertex_group = saved_shape_key.vertex_group
-        original_relation = saved_shape_key.relative_key
+        shape_keys, active_index, values = store_shape_keys(obj)
+        (__, original_name, original_value, original_min, original_max,
+                                original_vertex_group, original_relation) = store_active_shape_key(obj)
 
         # Restrictions
         if active_index == 0:
@@ -70,8 +65,6 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
                 shape_key.mute = False
                 shape_key.value = 1.0
             bpy.ops.object.shape_key_add(from_mix=True)
-            bpy.context.object.active_shape_key.name = original_name + ".merged"
-            merged_shape_key = bpy.context.object.active_shape_key
             bpy.ops.object.shape_key_move(type='TOP')
 
         # Merge Down
@@ -82,13 +75,11 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
                 shape_key.mute = False
                 shape_key.value = 1.0
             bpy.ops.object.shape_key_add(from_mix=True)
-            bpy.context.object.active_shape_key.name = original_name + ".merged"
-            merged_shape_key = bpy.context.object.active_shape_key
 
-        merged_shape_key.slider_min = min_value
-        merged_shape_key.slider_max = max_value
-        merged_shape_key.vertex_group = original_vertex_group
-        merged_shape_key.relative_key = original_relation
+        merged_shape_key = bpy.context.object.active_shape_key
+        set_shape_key_values(merged_shape_key, original_name + ".merged", original_value, original_min, original_max,
+                            original_vertex_group, original_relation)
+
 
         # Paste Keyframes from Original Shape Key
         anim_data = obj.data.shape_keys.animation_data
@@ -164,16 +155,9 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
         obj.select_set(True)
 
         # Store Values
-        shape_keys = obj.data.shape_keys.key_blocks
-        values = remember_shape_key_values(self, context, obj)
-        active_index = shape_keys.find(obj.active_shape_key.name)
-        saved_shape_key = shape_keys[active_index]
-        original_name = saved_shape_key.name
-        original_value = saved_shape_key.value
-        min_value = saved_shape_key.slider_min
-        max_value = saved_shape_key.slider_max
-        original_vertex_group = saved_shape_key.vertex_group
-        original_relation = saved_shape_key.relative_key
+        shape_keys, active_index, values = store_shape_keys(obj)
+        (original_shape_key, original_name, original_value, original_min, original_max,
+                                original_vertex_group, original_relation) = store_active_shape_key(obj)
 
         # Restrictions
         if active_index == 0:
@@ -201,27 +185,25 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
     
         # Merge Up
         if self.direction == "TOP":
-            saved_shape_key.value = 1.0
+            original_shape_key.value = 1.0
             above_shape_key.value = 1.0
-            saved_shape_key.mute = False
+            original_shape_key.mute = False
             above_shape_key.mute = False
 
         # Merge Down
         elif self.direction == "DOWN":
-            saved_shape_key.value = 1.0
+            original_shape_key.value = 1.0
             below_shape_key.value = 1.0
-            saved_shape_key.mute = False
+            original_shape_key.mute = False
             below_shape_key.mute = False
         for shape_key in filtered_shape_keys:
             shape_key.value = 0.0
 
         bpy.ops.object.shape_key_add(from_mix=True)
-        bpy.context.object.active_shape_key.name = original_name + ".merged"
-        merged_shape_key = bpy.context.object.active_shape_key
-        merged_shape_key.slider_min = min_value
-        merged_shape_key.slider_max = max_value
-        merged_shape_key.vertex_group = original_vertex_group
-        merged_shape_key.relative_key = original_relation
+        merged_shape_key = context.object.active_shape_key
+        set_shape_key_values(merged_shape_key, original_name + ".merged", original_value, original_min, original_max,
+                            original_vertex_group, original_relation)
+
 
         # Paste Keyframes from Original Shape Key
         anim_data = obj.data.shape_keys.animation_data

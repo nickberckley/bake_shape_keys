@@ -1,7 +1,9 @@
 import bpy
 from ..functions.mesh import (
     set_active_shape_key,
-    remember_shape_key_values,
+    store_shape_keys,
+    store_active_shape_key,
+    set_shape_key_values,
 )
 
 
@@ -47,41 +49,32 @@ class MESH_OT_shape_key_split(bpy.types.Operator):
             bpy.ops.object.vertex_group_assign()
 
         # Store Values
-        shape_keys = obj.data.shape_keys.key_blocks
-        values = remember_shape_key_values(self, context, obj)
-        active_index = shape_keys.find(obj.active_shape_key.name)
+        shape_keys, active_index, values = store_shape_keys(obj)
+        (original_shape_key, original_name, original_value, original_min, original_max,
+                                original_vertex_group, original_relation) = store_active_shape_key(obj)
+
         bpy.ops.object.mode_set(mode='OBJECT')
-        saved_shape_key = bpy.context.object.active_shape_key
-        original_name = saved_shape_key.name
-        original_value = saved_shape_key.value
-        min_value = saved_shape_key.slider_min
-        max_value = saved_shape_key.slider_max
-        original_vertex_group = saved_shape_key.vertex_group
-        original_relation = saved_shape_key.relative_key
 
         # Create Left Version
         bpy.ops.object.shape_key_clear()
-        saved_shape_key.vertex_group = 'split_shape_key_left'
-        saved_shape_key.value = 1.0
+        original_shape_key.vertex_group = 'split_shape_key_left'
+        original_shape_key.value = 1.0
+
         bpy.ops.object.shape_key_add(from_mix=True)
-        bpy.context.object.active_shape_key.name = original_name + ".split_001"
         left_shape_key = bpy.context.object.active_shape_key
-        left_shape_key.slider_min = min_value
-        left_shape_key.slider_max = max_value
-        left_shape_key.vertex_group = original_vertex_group
-        left_shape_key.relative_key = original_relation
+        set_shape_key_values(left_shape_key, original_name + ".split_001", original_value, original_min, original_max,
+                            original_vertex_group, original_relation)
 
         # Create Right Version
         bpy.ops.object.shape_key_clear()
-        saved_shape_key.vertex_group = 'split_shape_key_right'
-        saved_shape_key.value = 1.0
+        original_shape_key.vertex_group = 'split_shape_key_right'
+        original_shape_key.value = 1.0
+
         bpy.ops.object.shape_key_add(from_mix=True)
-        bpy.context.object.active_shape_key.name = original_name + ".split_002"
         right_shape_key = bpy.context.object.active_shape_key
-        right_shape_key.slider_min = min_value
-        right_shape_key.slider_max = max_value
-        right_shape_key.vertex_group = original_vertex_group
-        right_shape_key.relative_key = original_relation
+        set_shape_key_values(right_shape_key, original_name + ".split_002", original_value, original_min, original_max,
+                            original_vertex_group, original_relation)
+
 
         # Paste Keyframes from Original Shape Key
         anim_data = obj.data.shape_keys.animation_data
