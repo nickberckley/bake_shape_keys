@@ -7,7 +7,7 @@ def store_shape_keys(obj):
     """Returns list of shape keys, active shape key index and dictionary of shape key values"""
 
     shape_keys = obj.data.shape_keys.key_blocks
-    active = shape_keys.find(obj.active_shape_key.name)
+    active = obj.active_shape_key_index
 
     # values
     values = {}

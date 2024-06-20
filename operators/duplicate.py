@@ -26,16 +26,13 @@ class MESH_OT_shape_key_duplicate(bpy.types.Operator):
         obj = context.object
         mode = context.object.mode
 
-        bpy.ops.object.select_all(action='DESELECT')
-        obj.select_set(True)
-
         # Store Values
         shape_keys, active_index, values = store_shape_keys(obj)
         (__, original_name, original_value, original_min, original_max,
                                 original_vertex_group, original_relation) = store_active_shape_key(obj)
 
         if active_index == 0:
-            self.report({'INFO'}, "This operation can't be performed on basis shape key")
+            self.report({'INFO'}, "Basis shape key can't be duplicated")
             return {'CANCELLED'}
 
         # New Shape Key from Mix
@@ -43,8 +40,7 @@ class MESH_OT_shape_key_duplicate(bpy.types.Operator):
             shape_key.value = 0.0
         obj.active_shape_key.value = 1.0
 
-        bpy.ops.object.shape_key_add(from_mix=True)
-        dupe_shape_key = obj.active_shape_key
+        dupe_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(dupe_shape_key, original_name, original_value, original_min, original_max,
                             original_vertex_group, original_relation)
 
@@ -54,11 +50,11 @@ class MESH_OT_shape_key_duplicate(bpy.types.Operator):
             transfer_animation(anim_data, original_name, dupe_shape_key)
 
         # Restore Values
-        for shape_key in obj.data.shape_keys.key_blocks:
+        for shape_key in shape_keys:
             shape_key.value = values.get(shape_key.name, 0.0)
 
         # Move Shape Keys to Correct Position in UI
-        new_index = (len(obj.data.shape_keys.key_blocks) - active_index) - 2
+        new_index = (len(shape_keys) - active_index) - 2
         bpy.ops.object.mode_set(mode='OBJECT')
         for _ in range(new_index):
             set_active_shape_key(dupe_shape_key.name)

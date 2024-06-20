@@ -28,17 +28,13 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
         return context.active_object is not None and context.active_object.type == 'MESH' and context.active_object.data.shape_keys is not None
 
     def execute(self, context):
-        obj = bpy.context.object
-
-        bpy.ops.object.select_all(action='DESELECT')
-        obj.select_set(True)
+        obj = context.object
 
         # Store Values
         shape_keys, active_index, values = store_shape_keys(obj)
-        (__, original_name, original_value, original_min, original_max,
+        (original_shape_key, original_name, original_value, original_min, original_max,
                                 original_vertex_group, original_relation) = store_active_shape_key(obj)
 
-        # Restrictions
         if active_index == 0:
             self.report({'INFO'}, "Basis shape key can't be merged with anything")
             return {'CANCELLED'}
@@ -47,14 +43,15 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
             self.report({'INFO'}, "Nothing below to merge with")
             return {'CANCELLED'}
 
+
         if active_index != -1:
-            # Select Top Shape Keys
+            # select_shape_keys_above
             shape_keys_above = []
             for i in range(active_index + 1, len(shape_keys)):
                 if shape_keys[i].name != shape_keys[0].name:
                     shape_keys_above.append(shape_keys[i])
-            
-            # Select Bottom Shape keys
+
+            # select_shape_keys_below
             shape_keys_below = []
             for i in range(active_index - 1, -1, -1):
                 if shape_keys[i].name != shape_keys[0].name:
@@ -67,7 +64,7 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
             for shape_key in shape_keys_below:
                 shape_key.mute = False
                 shape_key.value = 1.0
-            bpy.ops.object.shape_key_add(from_mix=True)
+            merged_shape_key = obj.shape_key_add(from_mix=True)
             bpy.ops.object.shape_key_move(type='TOP')
 
         # Merge Down
@@ -77,39 +74,34 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
             for shape_key in shape_keys_above:
                 shape_key.mute = False
                 shape_key.value = 1.0
-            bpy.ops.object.shape_key_add(from_mix=True)
+            merged_shape_key = obj.shape_key_add(from_mix=True)
 
-        merged_shape_key = bpy.context.object.active_shape_key
         set_shape_key_values(merged_shape_key, original_name + ".merged", original_value, original_min, original_max,
                             original_vertex_group, original_relation)
 
-
-        # Paste Keyframes from Original Shape Key
+        # Transfer Animation
         anim_data = obj.data.shape_keys.animation_data
         if anim_data:
             transfer_animation(anim_data, original_name, merged_shape_key)
-    
+
+
         # Remove Shape Keys
         filtered_shape_keys = shape_keys_below if self.direction == "TOP" else shape_keys_above
-        for shape_key in filtered_shape_keys:
-            set_active_shape_key(shape_key.name)
-            bpy.ops.object.shape_key_remove(all=False)
-        set_active_shape_key(original_name)
-        bpy.ops.object.shape_key_remove(all=False)
+        if anim_data:
+            filtered_fcurves = {f'key_blocks["{shape_key.name}"].value' for shape_key in filtered_shape_keys}
+            for fcurve in anim_data.action.fcurves[:]:
+                if fcurve.data_path in filtered_fcurves:
+                    anim_data.action.fcurves.remove(fcurve)
 
-        for item in filtered_shape_keys:
-            name = item.name
-            if anim_data:
-                for fcurve in anim_data.action.fcurves:
-                    if fcurve.data_path == f'key_blocks["{name}"].value':
-                        anim_data.action.fcurves.remove(fcurve)
+        for shape_key in filtered_shape_keys:
+            obj.shape_key_remove(shape_key)
 
         # Restore Values
-        for shape_key in obj.data.shape_keys.key_blocks:
+        for shape_key in shape_keys:
             shape_key.value = values.get(shape_key.name, 0.0)
-        set_active_shape_key(merged_shape_key.name)
-        bpy.context.object.active_shape_key.value = original_value
 
+        merged_shape_key.value = original_value
+        set_active_shape_key(merged_shape_key.name)
         return {'FINISHED'}
 
 
@@ -129,17 +121,14 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
         return context.active_object is not None and context.active_object.type == 'MESH' and context.active_object.data.shape_keys is not None
 
     def execute(self, context):
-        obj = bpy.context.object
-        mode = bpy.context.object.mode
-        bpy.ops.object.select_all(action='DESELECT')
-        obj.select_set(True)
+        obj = context.object
+        mode = context.object.mode
 
         # Store Values
         shape_keys, active_index, values = store_shape_keys(obj)
         (original_shape_key, original_name, original_value, original_min, original_max,
                                 original_vertex_group, original_relation) = store_active_shape_key(obj)
 
-        # Restrictions
         if active_index == 0:
             self.report({'INFO'}, "Basis shape key can't be merged with anything")
             return {'CANCELLED'}
@@ -147,6 +136,7 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
         if active_index == len(shape_keys) - 1 and self.direction == "DOWN":
             self.report({'INFO'}, "Nothing below to merge with")
             return {'CANCELLED'}
+
 
         # Select Shape Keys
         above_index = active_index - 1
@@ -179,41 +169,37 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
         for shape_key in filtered_shape_keys:
             shape_key.value = 0.0
 
-        bpy.ops.object.shape_key_add(from_mix=True)
-        merged_shape_key = context.object.active_shape_key
+        merged_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(merged_shape_key, original_name + ".merged", original_value, original_min, original_max,
                             original_vertex_group, original_relation)
 
-
-        # Paste Keyframes from Original Shape Key
+        # Transfer Animation
         anim_data = obj.data.shape_keys.animation_data
         if anim_data:
             transfer_animation(anim_data, original_name, merged_shape_key)
 
+
         # Remove Shape Keys
-        set_active_shape_key(original_name)
-        bpy.ops.object.shape_key_remove(all=False)
+        obj.shape_key_remove(original_shape_key)
         if self.direction == "TOP":
-            set_active_shape_key(above_shape_key.name)
-            bpy.ops.object.shape_key_remove(all=False)
             if anim_data:
                 for fcurve in anim_data.action.fcurves:
                     if fcurve.data_path in [f'key_blocks["{original_name}"].value', f'key_blocks["{above_shape_key.name}"].value']:
                         anim_data.action.fcurves.remove(fcurve)
+            obj.shape_key_remove(above_shape_key)
 
         elif self.direction == "DOWN":
-            set_active_shape_key(below_shape_key.name)
-            bpy.ops.object.shape_key_remove(all=False)
             if anim_data:
                 for fcurve in anim_data.action.fcurves:
                     if fcurve.data_path in [f'key_blocks["{original_name}"].value', f'key_blocks["{below_shape_key.name}"].value']:
                         anim_data.action.fcurves.remove(fcurve)
+            obj.shape_key_remove(below_shape_key)
 
         # Restore Values
-        for shape_key in obj.data.shape_keys.key_blocks:
+        for shape_key in shape_keys:
             shape_key.value = values.get(shape_key.name, 0.0)
+        merged_shape_key.value = original_value
         set_active_shape_key(merged_shape_key.name)
-        bpy.context.object.active_shape_key.value = original_value
 
         # Move Shape Keys to Correct Position in UI
         bpy.ops.object.mode_set(mode='OBJECT')
