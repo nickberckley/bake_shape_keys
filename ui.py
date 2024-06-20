@@ -1,32 +1,6 @@
 import bpy, os
 
 
-##### ---------------------------------- PANELS ---------------------------------- #####
-
-class VIEW3D_PT_bake_shape_key_panel(bpy.types.Panel):
-    bl_idname = "OBJECT_PT_add_shape_key_keyframe_panel"
-    bl_label = "Bake Shape Keys"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Animate"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        prefs = bpy.context.preferences.addons[__package__].preferences
-        if prefs.show_sidepanel:
-            return True
-        else:
-            return False
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("object.add_shape_key_keyframe_operator", text="Insert Keyframe for Shape Keys")
-        layout.operator("object.bake_shape_key_animation")
-        layout.operator("object.objects_from_shape_keys")
-
-
-
 #### ------------------------------ MENUS ------------------------------ ####
 
 def bake_shape_keys_animation_menu(self, context):
@@ -109,12 +83,13 @@ class MESH_MT_shape_key_merge(bpy.types.Menu):
 preview_collections = {}
 
 classes = [
-    VIEW3D_PT_bake_shape_key_panel,
     MESH_MT_shape_key_merge,
 ]
 
 
 def register():
+    import bpy.utils.previews
+
     for cls in classes:
         bpy.utils.register_class(cls)
 
