@@ -1,4 +1,7 @@
 import bpy
+from ..functions.animation import (
+    transfer_animation,
+)
 from ..functions.mesh import (
     set_active_shape_key,
     store_shape_keys,
@@ -45,33 +48,10 @@ class MESH_OT_shape_key_duplicate(bpy.types.Operator):
         set_shape_key_values(dupe_shape_key, original_name, original_value, original_min, original_max,
                             original_vertex_group, original_relation)
 
-        # Paste Keyframes from Original Shape Key
+        # Copy Animation
         anim_data = obj.data.shape_keys.animation_data
         if anim_data:
-            for fcurve in anim_data.action.fcurves:
-                if fcurve.data_path == f'key_blocks["{original_name}"].value':
-                    original_fcurve = fcurve
-                    for keyframe in fcurve.keyframe_points:
-                        frame = int(keyframe.co[0])
-                        value = keyframe.co[1]
-                        
-                        dupe_shape_key.value = value
-                        dupe_shape_key.keyframe_insert(data_path="value", frame=frame)
-
-            # Paste Interpolation from Original Keyframes
-            for fcurve in anim_data.action.fcurves:
-                if fcurve.data_path == f'key_blocks["{dupe_shape_key.name}"].value':
-                    for keyframe in fcurve.keyframe_points:
-                        frame = int(keyframe.co[0])
-                        for orig_keyframe in original_fcurve.keyframe_points:
-                            if int(orig_keyframe.co[0]) == frame:
-                                keyframe.interpolation = orig_keyframe.interpolation
-                                keyframe.easing = orig_keyframe.easing
-                                keyframe.handle_left_type = orig_keyframe.handle_left_type
-                                keyframe.handle_right_type = orig_keyframe.handle_right_type
-                                keyframe.handle_left = orig_keyframe.handle_left
-                                keyframe.handle_right = orig_keyframe.handle_right
-                                break
+            transfer_animation(anim_data, original_name, dupe_shape_key)
 
         # Restore Values
         for shape_key in obj.data.shape_keys.key_blocks:
