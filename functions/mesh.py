@@ -28,11 +28,12 @@ def store_active_shape_key(obj):
     max = shape_key.slider_max
     vertex_group = shape_key.vertex_group
     relation = shape_key.relative_key
+    mute = shape_key.mute
 
-    return shape_key, name, value, min, max, vertex_group, relation
+    return shape_key, name, value, min, max, vertex_group, relation, mute
 
 
-def set_shape_key_values(copy, name, value, min, max, vertex_group, relation):
+def set_shape_key_values(copy, name, value, min, max, vertex_group, relation, mute):
     """Sets values for all shape key properties"""
     copy.name = name
     copy.value = value
@@ -40,6 +41,7 @@ def set_shape_key_values(copy, name, value, min, max, vertex_group, relation):
     copy.slider_max = max
     copy.vertex_group = vertex_group
     copy.relative_key = relation
+    copy.mute = mute
 
 
 def set_active_shape_key(obj, name):
