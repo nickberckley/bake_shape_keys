@@ -1,4 +1,8 @@
 import bpy
+from ..functions.poll import (
+    shape_key_poll,
+    animation_poll,
+)
 
 
 ##### ---------------------------------- OPERATORS ---------------------------------- #####
@@ -10,7 +14,7 @@ class MESH_OT_shape_key_keyframe_all(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None and context.active_object.data.shape_keys is not None
+        return shape_key_poll(context)
 
     def execute(self, context):
         obj = context.object
@@ -63,7 +67,7 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None and context.active_object.data.shape_keys is not None
+        return shape_key_poll(context) and animation_poll(context)
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
