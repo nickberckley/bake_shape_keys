@@ -65,6 +65,7 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
                 shape_key.mute = False
                 shape_key.value = 1.0
             merged_shape_key = obj.shape_key_add(from_mix=True)
+            set_active_shape_key(merged_shape_key.name)
             bpy.ops.object.shape_key_move(type='TOP')
 
         # Merge Down
@@ -87,6 +88,7 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
 
         # Remove Shape Keys
         filtered_shape_keys = shape_keys_below if self.direction == "TOP" else shape_keys_above
+        filtered_shape_keys.append(original_shape_key)
         if anim_data:
             filtered_fcurves = {f'key_blocks["{shape_key.name}"].value' for shape_key in filtered_shape_keys}
             for fcurve in anim_data.action.fcurves[:]:
@@ -99,8 +101,8 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
         # Restore Values
         for shape_key in shape_keys:
             shape_key.value = values.get(shape_key.name, 0.0)
-
         merged_shape_key.value = original_value
+
         set_active_shape_key(merged_shape_key.name)
         return {'FINISHED'}
 
