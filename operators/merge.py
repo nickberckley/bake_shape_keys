@@ -62,9 +62,6 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
 
         # Merge Up
         if self.direction == "TOP":
-            for shape_key in shape_keys_above:
-                shape_key.mute = False
-                shape_key.value = 1.0
             for shape_key in shape_keys_below:
                 shape_key.value = 0.0
 
@@ -76,9 +73,6 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
         elif self.direction == "DOWN":
             for shape_key in shape_keys_above:
                 shape_key.value = 0.0
-            for shape_key in shape_keys_below:
-                shape_key.mute = False
-                shape_key.value = 1.0
 
             merged_shape_key = obj.shape_key_add(from_mix=True)
 
@@ -152,21 +146,11 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
         below_shape_key = shape_keys[active_index + 1] if not active_index == len(shape_keys) - 1 else None
 
         for shape_key in shape_keys:
-            shape_key.value = 0.0
-
-        # Merge Up
-        if self.direction == "TOP":
-            original_shape_key.value = 1.0
-            above_shape_key.value = 1.0
-            original_shape_key.mute = False
-            above_shape_key.mute = False
-
-        # Merge Down
-        elif self.direction == "DOWN":
-            original_shape_key.value = 1.0
-            below_shape_key.value = 1.0
-            original_shape_key.mute = False
-            below_shape_key.mute = False
+            if shape_key == original_shape_key:
+                continue
+            if ((self.direction == "TOP" and shape_key != above_shape_key) or
+                (self.direction == "DOWN" and shape_key != below_shape_key)):
+                    shape_key.value = 0.0
 
         merged_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(merged_shape_key, original_name + ".merged", original_value, original_min, original_max,
