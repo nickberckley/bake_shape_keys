@@ -16,8 +16,8 @@ from ..functions.poll import (
 
 ##### ---------------------------------- OPERATORS ---------------------------------- #####
 
-class MESH_OT_shape_key_duplicate(bpy.types.Operator):
-    bl_idname = "mesh.shape_key_uplicate"
+class OBJECT_OT_shape_key_duplicate(bpy.types.Operator):
+    bl_idname = "object.shape_key_duplicate"
     bl_label = "Duplicate Shape Key"
     bl_description = "Make a duplicated copy of an active shape key"
     bl_options = {'REGISTER', 'UNDO'}
@@ -58,7 +58,7 @@ class MESH_OT_shape_key_duplicate(bpy.types.Operator):
             shape_key.value = values.get(shape_key.name, 0.0)
 
         # Move Shape Keys to Correct Position in UI
-        reposition_shape_key(shape_keys, active_index, mode, dupe_shape_key)
+        reposition_shape_key(obj, shape_keys, active_index, mode, dupe_shape_key)
 
         return {'FINISHED'}
 
@@ -67,13 +67,13 @@ class MESH_OT_shape_key_duplicate(bpy.types.Operator):
 ##### ---------------------------------- REGISTERING ---------------------------------- #####
 
 classes = [
-    MESH_OT_shape_key_duplicate,
+    OBJECT_OT_shape_key_duplicate,
 ]
 
 def register():
-    for cls in classes :
+    for cls in classes:
         bpy.utils.register_class(cls)
 
 def unregister():
-    for cls in reversed(classes) :
+    for cls in reversed(classes):
         bpy.utils.unregister_class(cls)

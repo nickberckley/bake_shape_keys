@@ -7,7 +7,7 @@ from ..functions.poll import (
 
 ##### ---------------------------------- OPERATORS ---------------------------------- #####
 
-class MESH_OT_shape_key_keyframe_all(bpy.types.Operator):
+class OBJECT_OT_shape_key_keyframe_all(bpy.types.Operator):
     bl_idname = "object.shape_key_keyframe_all"
     bl_label = "Insert Keyframe for All Shape Keys"
     bl_options = {'REGISTER', 'UNDO'}
@@ -22,7 +22,6 @@ class MESH_OT_shape_key_keyframe_all(bpy.types.Operator):
             if key != obj.data.shape_keys.key_blocks[0]:
                 key.keyframe_insert("value")
         return {'FINISHED'}
-
 
 
 class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
@@ -124,7 +123,7 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         col2 = layout.column()
         col2.prop(self, "even_odd_frames")
         layout.prop(self, "constant_interpolation")
-        
+
         if self.follow_scene_range:
             col.enabled = False
         if self.step % 2 == 0:
@@ -137,14 +136,14 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
 ##### ---------------------------------- REGISTERING ---------------------------------- #####
 
 classes = [
-    MESH_OT_shape_key_keyframe_all,
+    OBJECT_OT_shape_key_keyframe_all,
     OBJECT_OT_shape_key_action_bake,
 ]
 
 def register():
-    for cls in classes :
+    for cls in classes:
         bpy.utils.register_class(cls)
 
 def unregister():
-    for cls in reversed(classes) :
+    for cls in reversed(classes):
         bpy.utils.unregister_class(cls)

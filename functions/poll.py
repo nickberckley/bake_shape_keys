@@ -18,7 +18,7 @@ def animation_poll(context):
     """Check that objects shape keys are animated"""
     shape_keys = context.object.data.shape_keys
     anim_data = shape_keys.animation_data
-    
+
     if anim_data:
         return True
     else:

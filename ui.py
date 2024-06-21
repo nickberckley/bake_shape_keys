@@ -5,7 +5,7 @@ import bpy, os
 
 def bake_shape_keys_animation_menu(self, context):
     layout = self.layout
-    
+
     # import_icons
     pcoll = preview_collections["main"]
     keyframe_shapekey = pcoll["keyframe_shapekey"]
@@ -54,27 +54,27 @@ def bake_shape_keys_panel_menu(self, context):
 def shape_key_extras_top(self, context):
     if bpy.context.active_object is not None and bpy.context.active_object.type == 'MESH':
         layout = self.layout
-        layout.operator("mesh.shape_key_uplicate", icon='DUPLICATE')
-        layout.operator("mesh.shape_key_split", icon='SCULPTMODE_HLT')
+        layout.operator("object.shape_key_duplicate", icon='DUPLICATE')
+        layout.operator("object.shape_key_split", icon='SCULPTMODE_HLT')
 
 
 def shape_key_extras_bottom(self, context):
     if bpy.context.active_object is not None and bpy.context.active_object.type == 'MESH':
         layout = self.layout
         layout.separator()
-        layout.menu("MESH_MT_shape_key_merge", text="Merge Shape Keys")
+        layout.menu("OBJECT_MT_shape_key_merge", text="Merge Shape Keys")
 
 
-class MESH_MT_shape_key_merge(bpy.types.Menu):
-    bl_idname = "MESH_MT_shape_key_merge"
+class OBJECT_MT_shape_key_merge(bpy.types.Menu):
+    bl_idname = "OBJECT_MT_shape_key_merge"
     bl_label = "Merge"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("mesh.shape_key_merge", text="Merge Up", icon='TRIA_UP').direction="TOP"
-        layout.operator("mesh.shape_key_merge_all", text="Merge Up (All the Way)", icon='SORT_DESC').direction="TOP"
-        layout.operator("mesh.shape_key_merge_all", text="Merge Down (All the Way)", icon='SORT_ASC').direction="DOWN"
-        layout.operator("mesh.shape_key_merge", text="Merge Down", icon='TRIA_DOWN').direction="DOWN"
+        layout.operator("object.shape_key_merge", text="Merge Up", icon='TRIA_UP').direction="TOP"
+        layout.operator("object.shape_key_merge_all", text="Merge Up (All the Way)", icon='SORT_DESC').direction="TOP"
+        layout.operator("object.shape_key_merge_all", text="Merge Down (All the Way)", icon='SORT_ASC').direction="DOWN"
+        layout.operator("object.shape_key_merge", text="Merge Down", icon='TRIA_DOWN').direction="DOWN"
 
 
 
@@ -83,7 +83,7 @@ class MESH_MT_shape_key_merge(bpy.types.Menu):
 preview_collections = {}
 
 classes = [
-    MESH_MT_shape_key_merge,
+    OBJECT_MT_shape_key_merge,
 ]
 
 

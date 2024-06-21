@@ -16,8 +16,8 @@ from ..functions.poll import (
 
 ##### ---------------------------------- OPERATORS ---------------------------------- #####
 
-class MESH_OT_shape_key_split(bpy.types.Operator):
-    bl_idname = "mesh.shape_key_split"
+class OBJECT_OT_shape_key_split(bpy.types.Operator):
+    bl_idname = "object.shape_key_split"
     bl_label = "Split Shape Key"
     bl_description = "Split active shape key into two parts based on edit mode selection"
     bl_options = {'REGISTER', 'UNDO'}
@@ -29,6 +29,7 @@ class MESH_OT_shape_key_split(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         mode = context.object.mode
+        bpy.ops.object.mode_set(mode='OBJECT')
 
         # Store Values
         shape_keys, active_index, values = store_shape_keys(obj)
@@ -44,13 +45,17 @@ class MESH_OT_shape_key_split(bpy.types.Operator):
             return {'CANCELLED'}
 
         # Create Vertex Groups
-        bpy.ops.object.mode_set(mode='OBJECT')
+        vertices_left = []
+        vertices_right = []
+        for vert in obj.data.vertices:
+            if vert.select == True:
+                vertices_left.append(vert.index)
+            else:
+                vertices_right.append(vert.index)
 
-        vertices_left = [v.index for v in obj.data.vertices if v.select == True]
         group_left = obj.vertex_groups.new(name="shape_key_split_left")
         group_left.add(vertices_left, weight=1, type='ADD')
 
-        vertices_right = [v.index for v in obj.data.vertices if v.select == False]
         group_right = obj.vertex_groups.new(name="shape_key_split_right")
         group_right.add(vertices_right, weight=1, type='ADD')
 
@@ -98,7 +103,7 @@ class MESH_OT_shape_key_split(bpy.types.Operator):
         right_shape_key.value = original_value
 
         # Move Shape Keys to Correct Position in UI
-        reposition_shape_key(shape_keys, active_index, mode, left_shape_key, right_shape_key)
+        reposition_shape_key(obj, shape_keys, active_index, mode, left_shape_key, right_shape_key)
 
         return {'FINISHED'}
 
@@ -107,13 +112,13 @@ class MESH_OT_shape_key_split(bpy.types.Operator):
 ##### ---------------------------------- REGISTERING ---------------------------------- #####
 
 classes = [
-    MESH_OT_shape_key_split,
+    OBJECT_OT_shape_key_split,
 ]
 
 def register():
-    for cls in classes :
+    for cls in classes:
         bpy.utils.register_class(cls)
 
 def unregister():
-    for cls in reversed(classes) :
+    for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
