@@ -13,9 +13,9 @@ class MESH_OT_shape_key_keyframe_all(bpy.types.Operator):
         return context.active_object is not None and context.active_object.data.shape_keys is not None
 
     def execute(self, context):
-        for shape_key in context.object.data.shape_keys.key_blocks:
-            if shape_key.name != "Basis":
-                shape_key.keyframe_insert("value")
+        obj = context.object
+        for key in (k for k in obj.data.shape_keys.key_blocks if k.name != "Basis"):
+            key.keyframe_insert("value")
         return {'FINISHED'}
 
 
@@ -68,36 +68,28 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def execute(self, context):
+        # Define Frame Range
         if self.follow_scene_range:
             self.start_frame = context.scene.frame_start
             self.end_frame = context.scene.frame_end
 
+        # start_range_on_even_or_odd_frame
+        if self.step % 2 == 0:
+            if ((self.even_odd_frames == "ODD" and self.start_frame % 2 == 0) or
+                (self.even_odd_frames == "EVEN" and self.start_frame % 2 != 0)):
+                self.start_frame += 1
+
         for obj in context.selected_objects:
             # Inserting Keyframes
-            for key in obj.data.shape_keys.key_blocks:
-                if key.name != "Basis":
-                    if self.step == 2:
-                        start = self.start_frame + (self.even_odd_frames == "ODD")
-                        for frame in range(start, self.end_frame+1, 2):
-                            context.scene.frame_set(frame)
-                            key.keyframe_insert(data_path="value", index=-1)
+            for key in (k for k in obj.data.shape_keys.key_blocks if k.name != "Basis"):
+                for frame in range(self.start_frame, self.end_frame+1, self.step):
+                    context.scene.frame_set(frame)
+                    key.keyframe_insert(data_path="value")
 
-                    elif self.step == 4:
-                        start = self.start_frame + (self.even_odd_frames == "ODD")
-                        for frame in range(start, self.end_frame+1, 4):
-                            context.scene.frame_set(frame)
-                            key.keyframe_insert(data_path="value", index=-1)
-
-                    else:
-                        for frame in range(self.start_frame, self.end_frame+1, self.step):
-                            context.scene.frame_set(frame)
-                            key.keyframe_insert(data_path="value", index=-1)
-
-            # Constant Interpolation
+            # constant_interpolation
             if self.constant_interpolation:
                 for fcurve in obj.data.shape_keys.animation_data.action.fcurves:
-                    if fcurve.data_path.startswith("key_blocks") and \
-                        any(self.start_frame <= keyframe.co[0] <= self.end_frame for keyframe in fcurve.keyframe_points):
+                    if fcurve.data_path.startswith("key_blocks"):
                         for keyframe in fcurve.keyframe_points:
                             if self.start_frame <= keyframe.co[0] <= self.end_frame:
                                 keyframe.interpolation = 'CONSTANT' 
