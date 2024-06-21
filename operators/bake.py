@@ -14,8 +14,9 @@ class MESH_OT_shape_key_keyframe_all(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.object
-        for key in (k for k in obj.data.shape_keys.key_blocks if k.name != "Basis"):
-            key.keyframe_insert("value")
+        for key in obj.data.shape_keys.key_blocks:
+            if key != obj.data.shape_keys.key_blocks[0]:
+                key.keyframe_insert("value")
         return {'FINISHED'}
 
 
@@ -80,19 +81,28 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
                 self.start_frame += 1
 
         for obj in context.selected_objects:
+            shape_keys = obj.data.shape_keys.key_blocks
+            basis = shape_keys[0]
+
             # Inserting Keyframes
-            for key in (k for k in obj.data.shape_keys.key_blocks if k.name != "Basis"):
-                for frame in range(self.start_frame, self.end_frame+1, self.step):
-                    context.scene.frame_set(frame)
-                    key.keyframe_insert(data_path="value")
+            for key in shape_keys:
+                if key != basis:
+                    for frame in range(self.start_frame, self.end_frame+1, self.step):
+                        context.scene.frame_set(frame)
+                        key.keyframe_insert(data_path="value")
 
             # constant_interpolation
             if self.constant_interpolation:
                 for fcurve in obj.data.shape_keys.animation_data.action.fcurves:
-                    if fcurve.data_path.startswith("key_blocks"):
-                        for keyframe in fcurve.keyframe_points:
-                            if self.start_frame <= keyframe.co[0] <= self.end_frame:
-                                keyframe.interpolation = 'CONSTANT' 
+                    if not fcurve.data_path.startswith("key_blocks"):
+                        continue
+                    if basis.name in fcurve.data_path:
+                        continue
+
+                    for keyframe in fcurve.keyframe_points:
+                        if self.start_frame <= keyframe.co[0] <= self.end_frame:
+                            keyframe.interpolation = 'CONSTANT'
+
         return {'FINISHED'}
 
     def draw(self, context):
