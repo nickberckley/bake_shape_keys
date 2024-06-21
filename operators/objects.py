@@ -149,6 +149,8 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
         # Report
         num_duplicates = len(duplicates_collection.objects)
         self.report({'INFO'}, "{} objects created".format(num_duplicates))
+        obj.hide_set(True)
+
         return {'FINISHED'}
     
     def _get_name(self, key):
