@@ -32,7 +32,7 @@ class OBJECT_OT_shape_key_duplicate(bpy.types.Operator):
 
         # Store Values
         shape_keys, active_index, values = store_shape_keys(obj)
-        (__, original_name, original_value, original_min, original_max,
+        (original_shape_key, original_name, original_value, original_min, original_max,
                             original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
 
         if active_index == 0:
@@ -42,7 +42,10 @@ class OBJECT_OT_shape_key_duplicate(bpy.types.Operator):
         # New Shape Key from Mix
         for shape_key in shape_keys:
             shape_key.value = 0.0
-        obj.active_shape_key.value = 1.0
+
+        original_shape_key.value = 1.0
+        if original_shape_key.mute == True:
+            original_shape_key.mute = False
 
         dupe_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(dupe_shape_key, original_name, original_value, original_min, original_max,
@@ -53,9 +56,14 @@ class OBJECT_OT_shape_key_duplicate(bpy.types.Operator):
         if anim_data:
             transfer_animation(anim_data, original_name, dupe_shape_key)
 
+
         # Restore Values
         for shape_key in shape_keys:
             shape_key.value = values.get(shape_key.name, 0.0)
+
+        dupe_shape_key.value = original_value
+        if original_mute:
+            original_shape_key.mute = True
 
         # Move Shape Keys to Correct Position in UI
         reposition_shape_key(obj, shape_keys, active_index, mode, dupe_shape_key)

@@ -62,8 +62,11 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
         # create_left_key
         for shape_key in shape_keys:
             shape_key.value = 0.0
+
         original_shape_key.vertex_group = 'shape_key_split_left'
         original_shape_key.value = 1.0
+        if original_shape_key.mute == True:
+            original_shape_key.mute = False
 
         left_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(left_shape_key, original_name + ".split_001", original_value, original_min, original_max,
