@@ -49,38 +49,37 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
             self.report({'INFO'}, "Nothing below to merge with")
             return {'CANCELLED'}
 
-
-        if active_index != -1:
-            # select_shape_keys_above
-            shape_keys_above = []
-            for i in range(active_index + 1, len(shape_keys)):
-                if shape_keys[i].name != shape_keys[0].name:
-                    shape_keys_above.append(shape_keys[i])
-
-            # select_shape_keys_below
-            shape_keys_below = []
-            for i in range(active_index - 1, -1, -1):
-                if shape_keys[i].name != shape_keys[0].name:
-                    shape_keys_below.append(shape_keys[i])
+        # filter_shape_keys
+        shape_keys_above = []
+        shape_keys_below = []
+        for i, key in enumerate(shape_keys):
+            if i == active_index or i == 0:
+                continue
+            if i < active_index:
+                shape_keys_above.append(key)
+            else:
+                shape_keys_below.append(key)
 
         # Merge Up
         if self.direction == "TOP":
             for shape_key in shape_keys_above:
-                shape_key.value = 0.0
-            for shape_key in shape_keys_below:
                 shape_key.mute = False
                 shape_key.value = 1.0
+            for shape_key in shape_keys_below:
+                shape_key.value = 0.0
+
             merged_shape_key = obj.shape_key_add(from_mix=True)
             set_active_shape_key(merged_shape_key.name)
             bpy.ops.object.shape_key_move(type='TOP')
 
         # Merge Down
         elif self.direction == "DOWN":
-            for shape_key in shape_keys_below:
-                shape_key.value = 0.0
             for shape_key in shape_keys_above:
+                shape_key.value = 0.0
+            for shape_key in shape_keys_below:
                 shape_key.mute = False
                 shape_key.value = 1.0
+
             merged_shape_key = obj.shape_key_add(from_mix=True)
 
         set_shape_key_values(merged_shape_key, original_name + ".merged", original_value, original_min, original_max,
@@ -93,7 +92,7 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
 
 
         # Remove Shape Keys
-        filtered_shape_keys = shape_keys_below if self.direction == "TOP" else shape_keys_above
+        filtered_shape_keys = shape_keys_above if self.direction == "TOP" else shape_keys_below
         filtered_shape_keys.append(original_shape_key)
         if anim_data:
             filtered_fcurves = {f'key_blocks["{shape_key.name}"].value' for shape_key in filtered_shape_keys}
@@ -149,20 +148,12 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
 
 
         # Select Shape Keys
-        above_index = active_index - 1
-        above_shape_key = shape_keys[above_index]
-        below_index = active_index + 1
-        below_shape_key = shape_keys[below_index] if not active_index == len(shape_keys) - 1 else None
+        above_shape_key = shape_keys[active_index - 1]
+        below_shape_key = shape_keys[active_index + 1] if not active_index == len(shape_keys) - 1 else None
 
-        filtered_shape_keys = []
-        for i, shape_key in enumerate(shape_keys):
-            if self.direction == "TOP":
-                if i != active_index and i != above_index:
-                    filtered_shape_keys.append(shape_key)
-            elif self.direction == "DOWN":
-                if i != active_index and i != below_index:
-                    filtered_shape_keys.append(shape_key)
-    
+        for shape_key in shape_keys:
+            shape_key.value = 0.0
+
         # Merge Up
         if self.direction == "TOP":
             original_shape_key.value = 1.0
@@ -176,8 +167,6 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
             below_shape_key.value = 1.0
             original_shape_key.mute = False
             below_shape_key.mute = False
-        for shape_key in filtered_shape_keys:
-            shape_key.value = 0.0
 
         merged_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(merged_shape_key, original_name + ".merged", original_value, original_min, original_max,
