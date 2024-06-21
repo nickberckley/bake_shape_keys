@@ -36,7 +36,7 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
         (original_shape_key, original_name, original_value, original_min, original_max,
                                 original_vertex_group, original_relation) = store_active_shape_key(obj)
 
-        if active_index == 0:
+        if (active_index == 0) or (active_index == 1 and self.direction == "TOP"):
             self.report({'INFO'}, "Basis shape key can't be merged with anything")
             return {'CANCELLED'}
 
@@ -132,7 +132,7 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
         (original_shape_key, original_name, original_value, original_min, original_max,
                                 original_vertex_group, original_relation) = store_active_shape_key(obj)
 
-        if active_index == 0:
+        if (active_index == 0) or (active_index == 1 and self.direction == "TOP"):
             self.report({'INFO'}, "Basis shape key can't be merged with anything")
             return {'CANCELLED'}
 
