@@ -34,7 +34,7 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
         # Store Values
         shape_keys, active_index, values = store_shape_keys(obj)
         (original_shape_key, original_name, original_value, original_min, original_max,
-                                original_vertex_group, original_relation) = store_active_shape_key(obj)
+                            original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
 
         if active_index == 0:
             self.report({'INFO'}, "Basis shape key can't be split")
@@ -67,7 +67,7 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
 
         left_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(left_shape_key, original_name + ".split_001", original_value, original_min, original_max,
-                            original_vertex_group, original_relation)
+                            original_vertex_group, original_relation, original_mute)
 
         # create_right_key
         left_shape_key.value = 0.0
@@ -76,7 +76,7 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
 
         right_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(right_shape_key, original_name + ".split_002", original_value, original_min, original_max,
-                            original_vertex_group, original_relation)
+                            original_vertex_group, original_relation, original_mute)
 
         # Transfer Animation
         anim_data = obj.data.shape_keys.animation_data
