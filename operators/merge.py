@@ -24,7 +24,11 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
                     "Rest of the animation will be lost, as well as other properties from merged shape keys\n")
     bl_options = {'REGISTER', 'UNDO'}
 
-    direction: bpy.props.StringProperty(
+    direction: bpy.props.EnumProperty(
+        name = "Direction",
+        items = [('TOP', "Top", ""),
+                 ('DOWN', "Down", "")],
+        default = 'DOWN',
     )
 
     @classmethod
@@ -41,11 +45,11 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
         (original_shape_key, original_name, original_value, original_min, original_max,
                             original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
 
-        if (active_index == 0) or (active_index == 1 and self.direction == "TOP"):
+        if (active_index == 0) or (active_index == 1 and self.direction == 'TOP'):
             self.report({'INFO'}, "Basis shape key can't be merged with anything")
             return {'CANCELLED'}
 
-        if active_index == len(shape_keys) - 1 and self.direction == "DOWN":
+        if active_index == len(shape_keys) - 1 and self.direction == 'DOWN':
             self.report({'INFO'}, "Nothing below to merge with")
             return {'CANCELLED'}
 
@@ -64,7 +68,7 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
             original_shape_key.mute = False
 
         # Merge Up
-        if self.direction == "TOP":
+        if self.direction == 'TOP':
             for shape_key in shape_keys_below:
                 shape_key.value = 0.0
 
@@ -73,7 +77,7 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
             bpy.ops.object.shape_key_move(type='TOP')
 
         # Merge Down
-        elif self.direction == "DOWN":
+        elif self.direction == 'DOWN':
             for shape_key in shape_keys_above:
                 shape_key.value = 0.0
 
@@ -89,7 +93,7 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
 
 
         # Remove Shape Keys
-        filtered_shape_keys = shape_keys_above if self.direction == "TOP" else shape_keys_below
+        filtered_shape_keys = shape_keys_above if self.direction == 'TOP' else shape_keys_below
         filtered_shape_keys.append(original_shape_key)
         if anim_data:
             filtered_fcurves = {f'key_blocks["{shape_key.name}"].value' for shape_key in filtered_shape_keys}
@@ -118,7 +122,11 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
                     "Rest of the animation will be lost, as well as other properties from merged shape keys\n")
     bl_options = {'REGISTER', 'UNDO'}
     
-    direction: bpy.props.StringProperty(
+    direction: bpy.props.EnumProperty(
+        name = "Direction",
+        items = [('TOP', "Top", ""),
+                 ('DOWN', "Down", "")],
+        default = 'DOWN',
     )
 
     @classmethod
@@ -138,11 +146,11 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
         above_shape_key = shape_keys[active_index - 1]
         below_shape_key = shape_keys[active_index + 1]
 
-        if (active_index == 0) or (active_index == 1 and self.direction == "TOP"):
+        if (active_index == 0) or (active_index == 1 and self.direction == 'TOP'):
             self.report({'INFO'}, "Basis shape key can't be merged with anything")
             return {'CANCELLED'}
 
-        if active_index == len(shape_keys) - 1 and self.direction == "DOWN":
+        if active_index == len(shape_keys) - 1 and self.direction == 'DOWN':
             self.report({'INFO'}, "Nothing below to merge with")
             return {'CANCELLED'}
 
@@ -150,8 +158,8 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
         for shape_key in shape_keys:
             if shape_key == original_shape_key:
                 continue
-            if ((self.direction == "TOP" and shape_key != above_shape_key) or
-                (self.direction == "DOWN" and shape_key != below_shape_key)):
+            if ((self.direction == 'TOP' and shape_key != above_shape_key) or
+                (self.direction == 'DOWN' and shape_key != below_shape_key)):
                     shape_key.value = 0.0
 
         if original_shape_key.mute == True:
@@ -168,7 +176,7 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
 
 
         # Remove Shape Keys
-        filtered_shape_keys = [original_shape_key, above_shape_key if self.direction=="TOP" else below_shape_key]
+        filtered_shape_keys = [original_shape_key, above_shape_key if self.direction=='TOP' else below_shape_key]
         if anim_data:
             filtered_fcurves = {f'key_blocks["{shape_key.name}"].value' for shape_key in filtered_shape_keys}
             for fcurve in anim_data.action.fcurves[:]:
@@ -185,7 +193,7 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
 
         # Move Shape Keys to Correct Position in UI
         reposition_shape_key(obj, shape_keys, active_index, mode, merged_shape_key,
-                             offset=0 if self.direction=="TOP" else 1)
+                             offset=0 if self.direction=='TOP' else 1)
 
         return {'FINISHED'}
 

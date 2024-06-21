@@ -71,10 +71,10 @@ class OBJECT_MT_shape_key_merge(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("object.shape_key_merge", text="Merge Up", icon='TRIA_UP').direction="TOP"
-        layout.operator("object.shape_key_merge_all", text="Merge Up (All the Way)", icon='SORT_DESC').direction="TOP"
-        layout.operator("object.shape_key_merge_all", text="Merge Down (All the Way)", icon='SORT_ASC').direction="DOWN"
-        layout.operator("object.shape_key_merge", text="Merge Down", icon='TRIA_DOWN').direction="DOWN"
+        layout.operator("object.shape_key_merge", text="Merge Up", icon='TRIA_UP').direction='TOP'
+        layout.operator("object.shape_key_merge_all", text="Merge Up (All the Way)", icon='SORT_DESC').direction='TOP'
+        layout.operator("object.shape_key_merge_all", text="Merge Down (All the Way)", icon='SORT_ASC').direction='DOWN'
+        layout.operator("object.shape_key_merge", text="Merge Down", icon='TRIA_DOWN').direction='DOWN'
 
 
 
