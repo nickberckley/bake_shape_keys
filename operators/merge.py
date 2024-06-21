@@ -30,6 +30,8 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.object
+        mode = context.object.mode
+        bpy.ops.object.mode_set(mode='OBJECT')
 
         # Store Values
         shape_keys, active_index, values = store_shape_keys(obj)
@@ -105,6 +107,7 @@ class MESH_OT_shape_key_merge_all(bpy.types.Operator):
         merged_shape_key.value = original_value
 
         set_active_shape_key(merged_shape_key.name)
+        bpy.ops.object.mode_set(mode=mode)
         return {'FINISHED'}
 
 
@@ -126,6 +129,7 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         mode = context.object.mode
+        bpy.ops.object.mode_set(mode='OBJECT')
 
         # Store Values
         shape_keys, active_index, values = store_shape_keys(obj)
