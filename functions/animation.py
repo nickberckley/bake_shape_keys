@@ -25,8 +25,13 @@ def transfer_animation(anim_data, source, *targets):
                         if int(original_keyframe.co[0]) == frame:
                             keyframe.interpolation = original_keyframe.interpolation
                             keyframe.easing = original_keyframe.easing
-                            keyframe.handle_left_type = original_keyframe.handle_left_type
-                            keyframe.handle_right_type = original_keyframe.handle_right_type
+                            keyframe.amplitude = original_keyframe.amplitude
+                            keyframe.back = original_keyframe.back
+                            keyframe.period = original_keyframe.period
+                            keyframe.type = original_keyframe.type
+
                             keyframe.handle_left = original_keyframe.handle_left
+                            keyframe.handle_left_type = original_keyframe.handle_left_type
                             keyframe.handle_right = original_keyframe.handle_right
+                            keyframe.handle_right_type = original_keyframe.handle_right_type
                             break
