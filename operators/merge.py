@@ -60,6 +60,9 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
             else:
                 shape_keys_below.append(key)
 
+        if original_shape_key.mute == True:
+            original_shape_key.mute = False
+
         # Merge Up
         if self.direction == "TOP":
             for shape_key in shape_keys_below:
@@ -150,6 +153,9 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
             if ((self.direction == "TOP" and shape_key != above_shape_key) or
                 (self.direction == "DOWN" and shape_key != below_shape_key)):
                     shape_key.value = 0.0
+
+        if original_shape_key.mute == True:
+            original_shape_key.mute = False
 
         merged_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(merged_shape_key, original_name + ".merged", original_value, original_min, original_max,
