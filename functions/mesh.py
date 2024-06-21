@@ -44,3 +44,17 @@ def set_shape_key_values(copy, name, value, min, max, vertex_group, relation):
 
 def set_active_shape_key(name):
     bpy.context.object.active_shape_key_index = bpy.context.object.data.shape_keys.key_blocks.keys().index(name)
+
+
+def reposition_shape_key(shape_keys, active_index, mode, *keys, offset=2):
+    """Moves up shape key to be below active shape key"""
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    new_index = (len(shape_keys) - active_index) - offset
+    for key in keys:
+        set_active_shape_key(key.name)
+        for _ in range(new_index):
+            bpy.ops.object.shape_key_move(type='UP')
+
+    bpy.ops.object.mode_set(mode=mode)

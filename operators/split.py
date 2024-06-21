@@ -7,6 +7,7 @@ from ..functions.mesh import (
     store_shape_keys,
     store_active_shape_key,
     set_shape_key_values,
+    reposition_shape_key,
 )
 
 
@@ -94,14 +95,8 @@ class MESH_OT_shape_key_split(bpy.types.Operator):
         right_shape_key.value = original_value
 
         # Move Shape Keys to Correct Position in UI
-        new_index = (len(shape_keys) - active_index) - 2
-        for _ in range(new_index):
-            set_active_shape_key(left_shape_key.name)
-            bpy.ops.object.shape_key_move(type='UP')
-            set_active_shape_key(right_shape_key.name)
-            bpy.ops.object.shape_key_move(type='UP')
+        reposition_shape_key(shape_keys, active_index, mode, left_shape_key, right_shape_key)
 
-        bpy.ops.object.mode_set(mode=mode)
         return {'FINISHED'}
 
 

@@ -7,6 +7,7 @@ from ..functions.mesh import (
     store_shape_keys,
     store_active_shape_key,
     set_shape_key_values,
+    reposition_shape_key,
 )
 
 
@@ -54,13 +55,8 @@ class MESH_OT_shape_key_duplicate(bpy.types.Operator):
             shape_key.value = values.get(shape_key.name, 0.0)
 
         # Move Shape Keys to Correct Position in UI
-        new_index = (len(shape_keys) - active_index) - 2
-        bpy.ops.object.mode_set(mode='OBJECT')
-        for _ in range(new_index):
-            set_active_shape_key(dupe_shape_key.name)
-            bpy.ops.object.shape_key_move(type='UP')
+        reposition_shape_key(shape_keys, active_index, mode, dupe_shape_key)
 
-        bpy.ops.object.mode_set(mode=mode)
         return {'FINISHED'}
 
 

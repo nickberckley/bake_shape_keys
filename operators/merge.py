@@ -7,6 +7,7 @@ from ..functions.mesh import (
     store_shape_keys,
     store_active_shape_key,
     set_shape_key_values,
+    reposition_shape_key,
 )
 
 
@@ -201,20 +202,11 @@ class MESH_OT_shape_key_merge(bpy.types.Operator):
         for shape_key in shape_keys:
             shape_key.value = values.get(shape_key.name, 0.0)
         merged_shape_key.value = original_value
-        set_active_shape_key(merged_shape_key.name)
 
         # Move Shape Keys to Correct Position in UI
-        bpy.ops.object.mode_set(mode='OBJECT')
-        if self.direction == "TOP":
-            new_index = (len(obj.data.shape_keys.key_blocks) - active_index)
-            for _ in range(new_index):
-                bpy.ops.object.shape_key_move(type='UP')
-        elif self.direction == "DOWN":
-            new_index = (len(obj.data.shape_keys.key_blocks) - active_index) - 1
-            for _ in range(new_index):
-                bpy.ops.object.shape_key_move(type='UP')
+        reposition_shape_key(shape_keys, active_index, mode, merged_shape_key,
+                             offset=0 if self.direction=="TOP" else 1)
 
-        bpy.ops.object.mode_set(mode=mode)
         return {'FINISHED'}
 
 
