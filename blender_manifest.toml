@@ -1,0 +1,22 @@
+schema_version = "1.0.0"
+
+id = "bake_shape_keys"
+name = "Bake Shape Keys"
+version = "1.2.0"
+tagline = "Feature-set for shape keys and shape key animations"
+type = "add-on"
+
+maintainer = "Nika Kutsniashvili <nickberckley@gmail.com>"
+website = "https://blenderartists.org/t/bake-shape-key"
+tags = ["Animation", "Mesh"]
+
+blender_version_min = "4.2.0"
+
+# License conforming to https://spdx.org/licenses/ (use "SPDX: prefix)
+# https://docs.blender.org/manual/en/dev/advanced/extensions/licenses.html
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+copyright = [
+  "2023-2024 Nika Kutsniashvili",
+]

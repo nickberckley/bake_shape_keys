@@ -1,11 +1,11 @@
 bl_info = {
     "name": "Bake Shape Keys",
-    "description": "Shape Key Operations for Stop-Motion Animation",
+    "description": "Feature-set for shape keys and shape key animations",
     "author": "Nika Kutsniashvili (nickberckley)",
     "version": (1, 1),
     "blender": (3, 5, 0),
-    "doc_url": "https://blendermarket.com/products/bake-shape-keys", 
-    "tracker_url": "https://blenderartists.org/t/bake-shape-keys-stop-motion-and-3d-printing-add-on/1458920",
+    "doc_url": "https://extensions.blender.org/add-ons/bake-shape-keys/", 
+    "tracker_url": "https://github.com/nickberckley/bake_shape_keys/issues/new",
     "location": "Object > Animation menu in Object Mode",
     "category": "Animation",
 }
