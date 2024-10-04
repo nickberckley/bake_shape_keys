@@ -48,6 +48,11 @@ def bake_shape_keys_panel_menu(self, context):
         layout.operator("object.shape_key_keyframe_all", text="Keyframe All Shape Keys")
 
 
+def copy_menu(self, context):
+    layout = self.layout
+    layout.separator()
+    layout.operator("object.shape_key_copy")
+
 
 #### ------------------------------ /specials/ ------------------------------ ####
 
@@ -105,6 +110,7 @@ def register():
     bpy.types.DATA_PT_shape_keys.append(bake_shape_keys_panel_menu)
     bpy.types.MESH_MT_shape_key_context_menu.prepend(shape_key_extras_top)
     bpy.types.MESH_MT_shape_key_context_menu.append(shape_key_extras_bottom)
+    bpy.types.VIEW3D_MT_make_links.append(copy_menu)
 
 #    bpy.types.VIEW3D_MT_object_context_menu.append(bake_shape_keys_context_menu)
 #    bpy.types.OUTLINER_MT_object.append(bake_shape_keys_context_menu)
@@ -125,6 +131,7 @@ def unregister():
     bpy.types.MESH_MT_shape_key_context_menu.remove(shape_key_extras_top)
     bpy.types.MESH_MT_shape_key_context_menu.remove(shape_key_extras_bottom)
     bpy.types.DATA_PT_shape_keys.remove(bake_shape_keys_panel_menu)
+    bpy.types.VIEW3D_MT_make_links.remove(copy_menu)
 
 #    bpy.types.VIEW3D_MT_object_context_menu.append(bake_shape_keys_context_menu)
 #    bpy.types.OUTLINER_MT_object.append(bake_shape_keys_context_menu)

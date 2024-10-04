@@ -15,6 +15,7 @@ import bpy
 from . import ui
 from .operators import (
     bake,
+    copy,
     duplicate,
     merge,
     objects,
@@ -27,6 +28,7 @@ from .operators import (
 modules = [
     ui,
     bake,
+    copy,
     duplicate,
     merge,
     objects,
