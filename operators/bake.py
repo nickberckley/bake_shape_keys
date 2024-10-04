@@ -21,6 +21,7 @@ class OBJECT_OT_shape_key_keyframe_all(bpy.types.Operator):
         for key in obj.data.shape_keys.key_blocks:
             if key != obj.data.shape_keys.key_blocks[0]:
                 key.keyframe_insert("value")
+
         return {'FINISHED'}
 
 

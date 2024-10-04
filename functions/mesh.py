@@ -35,6 +35,7 @@ def store_active_shape_key(obj):
 
 def set_shape_key_values(copy, name, value, min, max, vertex_group, relation, mute):
     """Sets values for all shape key properties"""
+
     copy.name = name
     copy.value = value
     copy.slider_min = min

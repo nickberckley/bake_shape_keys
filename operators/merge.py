@@ -121,7 +121,7 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
                     "WARNING: If shape key values are animated, merged shape key will inherit the animation from active shape key.\n"
                     "Rest of the animation will be lost, as well as other properties from merged shape keys\n")
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     direction: bpy.props.EnumProperty(
         name = "Direction",
         items = [('TOP', "Top", ""),

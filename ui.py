@@ -3,43 +3,22 @@ import bpy, os
 
 #### ------------------------------ MENUS ------------------------------ ####
 
-def bake_shape_keys_animation_menu(self, context):
+def animation_menu(self, context):
     layout = self.layout
 
     # import_icons
     pcoll = preview_collections["main"]
-    keyframe_shapekey = pcoll["keyframe_shapekey"]
-    bake_shapekey = pcoll["bake_shapekey"]
+    keyframe_shape_key = pcoll["keyframe_shape_key"]
+    bake_shape_key = pcoll["bake_shape_key"]
 
     if bpy.context.mode == 'OBJECT':
         layout.separator()
-        layout.operator("object.shape_key_keyframe_all", text="Insert Keyframe for Shape Keys", icon_value=keyframe_shapekey.icon_id)
-        layout.operator("object.shape_key_action_bake", icon_value=bake_shapekey.icon_id)
+        layout.operator("object.shape_key_keyframe_all", text="Insert Keyframe for Shape Keys", icon_value=keyframe_shape_key.icon_id)
+        layout.operator("object.shape_key_action_bake", icon_value=bake_shape_key.icon_id)
         layout.operator("object.objects_from_shape_keys")
 
 
-#def bake_shape_keys_context_menu(self, context):
-#    layout = self.layout
-#    preferences = bpy.context.preferences.addons[__package__].preferences
-#    if context.area.type == 'VIEW_3D':
-#        if preferences.show_context_menu:
-#            layout.separator()
-#            layout.operator("object.copy_data_names")
-#    elif context.area.type == 'OUTLINER':
-#        if preferences.show_outline_menu:
-#            layout.separator()
-#            layout.operator("object.copy_data_names")
-
-
-#def bake_shape_keys_collection_menu(self, context):
-#    layout = self.layout
-#    preferences = bpy.context.preferences.addons[__package__].preferences
-#    if preferences.show_outline_menu:
-#        layout.separator()
-#        layout.operator("object.copy_collection_data_names")
-
-
-def bake_shape_keys_panel_menu(self, context):
+def shape_keys_panel(self, context):
     layout = self.layout
     obj = bpy.context.active_object
 
@@ -52,6 +31,7 @@ def copy_menu(self, context):
     layout = self.layout
     layout.separator()
     layout.operator("object.shape_key_copy")
+
 
 
 #### ------------------------------ /specials/ ------------------------------ ####
@@ -101,20 +81,16 @@ def register():
     # PREVIEWS
     pcoll = bpy.utils.previews.new()
     icon_dir = os.path.join(os.path.dirname(__file__), "icons")
-    pcoll.load("keyframe_shapekey", os.path.join(icon_dir, "keyframe_shapekey.png"), 'IMAGE')
-    pcoll.load("bake_shapekey", os.path.join(icon_dir, "bake_shapekey.png"), 'IMAGE')
+    pcoll.load("keyframe_shape_key", os.path.join(icon_dir, "keyframe_shape_key.png"), 'IMAGE')
+    pcoll.load("bake_shape_key", os.path.join(icon_dir, "bake_shape_key.png"), 'IMAGE')
     preview_collections["main"] = pcoll
 
     # MENUS
-    bpy.types.VIEW3D_MT_object_animation.append(bake_shape_keys_animation_menu)
-    bpy.types.DATA_PT_shape_keys.append(bake_shape_keys_panel_menu)
+    bpy.types.VIEW3D_MT_object_animation.append(animation_menu)
+    bpy.types.DATA_PT_shape_keys.append(shape_keys_panel)
     bpy.types.MESH_MT_shape_key_context_menu.prepend(shape_key_extras_top)
     bpy.types.MESH_MT_shape_key_context_menu.append(shape_key_extras_bottom)
     bpy.types.VIEW3D_MT_make_links.append(copy_menu)
-
-#    bpy.types.VIEW3D_MT_object_context_menu.append(bake_shape_keys_context_menu)
-#    bpy.types.OUTLINER_MT_object.append(bake_shape_keys_context_menu)
-#    bpy.types.OUTLINER_MT_collection.append(bake_shape_keys_collection_menu)
 
 
 def unregister():
@@ -127,12 +103,8 @@ def unregister():
     preview_collections.clear()
 
     # MENUS
-    bpy.types.VIEW3D_MT_object_animation.remove(bake_shape_keys_animation_menu)
+    bpy.types.VIEW3D_MT_object_animation.remove(animation_menu)
     bpy.types.MESH_MT_shape_key_context_menu.remove(shape_key_extras_top)
     bpy.types.MESH_MT_shape_key_context_menu.remove(shape_key_extras_bottom)
-    bpy.types.DATA_PT_shape_keys.remove(bake_shape_keys_panel_menu)
+    bpy.types.DATA_PT_shape_keys.remove(shape_keys_panel)
     bpy.types.VIEW3D_MT_make_links.remove(copy_menu)
-
-#    bpy.types.VIEW3D_MT_object_context_menu.append(bake_shape_keys_context_menu)
-#    bpy.types.OUTLINER_MT_object.append(bake_shape_keys_context_menu)
-#    bpy.types.OUTLINER_MT_collection.append(bake_shape_keys_collection_menu)

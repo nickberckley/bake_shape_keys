@@ -10,7 +10,8 @@ from ..functions.poll import (
 class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
     bl_idname = "object.objects_from_shape_keys"
     bl_label = "Objects from Shape Keys"
-    bl_description = "Creates new object for every frame that has different Shape Key values within the selected frame range.\nCan be used to turn keyframed mesh into separate objects.\nDuplicated meshes will be given unique name for origanizational purposes"
+    bl_description = ("Creates new object for every frame that has different Shape Key values within the selected frame range.\n"
+                      "Can be used to turn keyframed mesh into separate objects.\nDuplicated meshes will be given unique name for origanizational purposes")
     bl_options = {'REGISTER', 'UNDO'}
     
     delete_duplicates: bpy.props.BoolProperty(

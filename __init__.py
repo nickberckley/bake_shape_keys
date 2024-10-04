@@ -13,32 +13,24 @@ bl_info = {
 import bpy
 
 from . import ui
-from .operators import (
-    bake,
-    copy,
-    duplicate,
-    merge,
-    objects,
-    split,
-)
+from .operators import register as operators_register, unregister as operators_unregister
 
 
 ##### ---------------------------------- REGISTERING ---------------------------------- #####
 
 modules = [
     ui,
-    bake,
-    copy,
-    duplicate,
-    merge,
-    objects,
-    split,
 ]
 
 def register():
     for module in modules:
         module.register()
 
+    operators_register()
+
+
 def unregister():
     for module in reversed(modules):
         module.unregister()
+
+    operators_unregister()
