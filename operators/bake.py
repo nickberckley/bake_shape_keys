@@ -52,37 +52,31 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         default = 1,
     )
 
-    even_odd_frames: bpy.props.EnumProperty(
-        name = "Even/Odd Frames",
-        items = (('EVEN', "Even Frames", "Insert keyframes on even frames only"),
-                ('ODD', "Odd Frames", "Insert keyframes on odd frames only")),
-        default = 'ODD',
-        description = "If frame step is set to an even number you can choose to bake animation on either even or odd numbered frames"
-    )
     constant_interpolation: bpy.props.BoolProperty(
         name = "Constant Interpolation",
         description = "Inserted keyframes will have constant interpolation between them",
         default = True
     )
 
+
     @classmethod
     def poll(cls, context):
         return shape_key_poll(context) and animation_poll(context)
 
     def invoke(self, context, event):
+        self.start_frame = context.scene.frame_start
+        self.end_frame = context.scene.frame_end
+
         return context.window_manager.invoke_props_dialog(self)
 
+
     def execute(self, context):
-        # Define Frame Range
+        # define_frame_range
+        initial_frame = context.scene.frame_current
         if self.follow_scene_range:
             self.start_frame = context.scene.frame_start
             self.end_frame = context.scene.frame_end
 
-        # start_range_on_even_or_odd_frame
-        if self.step % 2 == 0:
-            if ((self.even_odd_frames == "ODD" and self.start_frame % 2 == 0) or
-                (self.even_odd_frames == "EVEN" and self.start_frame % 2 != 0)):
-                self.start_frame += 1
 
         for obj in context.selected_objects:
             shape_keys = obj.data.shape_keys.key_blocks
@@ -91,11 +85,11 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
             # Inserting Keyframes
             for key in shape_keys:
                 if key != basis:
-                    for frame in range(self.start_frame, self.end_frame+1, self.step):
+                    for frame in range(self.start_frame, self.end_frame + 1, self.step):
                         context.scene.frame_set(frame)
                         key.keyframe_insert(data_path="value")
 
-            # constant_interpolation
+            # Set Constant Interpolation
             if self.constant_interpolation:
                 for fcurve in obj.data.shape_keys.animation_data.action.fcurves:
                     if not fcurve.data_path.startswith("key_blocks"):
@@ -107,6 +101,9 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
                         if self.start_frame <= keyframe.co[0] <= self.end_frame:
                             keyframe.interpolation = 'CONSTANT'
 
+
+        context.scene.frame_set(initial_frame)
+        self.report({'INFO'}, "Shape key action successfully baked for selected object(s)")        
         return {'FINISHED'}
 
     def draw(self, context):
@@ -121,16 +118,11 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         row.prop(self, "end_frame", text="")
         layout.prop(self, "step")
 
-        col2 = layout.column()
-        col2.prop(self, "even_odd_frames")
+        layout.separator()
         layout.prop(self, "constant_interpolation")
 
         if self.follow_scene_range:
             col.enabled = False
-        if self.step % 2 == 0:
-            col2.enabled = True
-        else:
-            col2.enabled = False
 
 
 
