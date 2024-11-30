@@ -25,7 +25,17 @@ class OBJECT_PT_shape_key_copy(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object and context.object.mode == 'OBJECT' and len(context.selected_objects) > 1
+        if context.active_object:
+            if context.mode == 'OBJECT':
+                if len(context.selected_objects) > 1:
+                    return True
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
+
 
     def execute(self, context):
         sources = context.selected_objects

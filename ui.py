@@ -1,4 +1,5 @@
 import bpy, os
+from .functions.poll import shape_key_poll
 
 
 #### ------------------------------ MENUS ------------------------------ ####
@@ -11,7 +12,7 @@ def animation_menu(self, context):
     keyframe_shape_key = pcoll["keyframe_shape_key"]
     bake_shape_key = pcoll["bake_shape_key"]
 
-    if bpy.context.mode == 'OBJECT':
+    if context.mode == 'OBJECT':
         layout.separator()
         layout.operator("object.shape_key_keyframe_all", text="Insert Keyframe for Shape Keys", icon_value=keyframe_shape_key.icon_id)
         layout.operator("object.shape_key_action_bake", icon_value=bake_shape_key.icon_id)
@@ -20,9 +21,9 @@ def animation_menu(self, context):
 
 def shape_keys_panel(self, context):
     layout = self.layout
-    obj = bpy.context.active_object
+    obj = context.active_object
 
-    if obj and obj.data.shape_keys and len(obj.data.shape_keys.key_blocks) >= 3:
+    if shape_key_poll(context) and len(obj.data.shape_keys.key_blocks) >= 3:
         layout.separator()
         layout.operator("object.shape_key_keyframe_all", text="Keyframe All Shape Keys")
 
@@ -37,17 +38,15 @@ def copy_menu(self, context):
 #### ------------------------------ /specials/ ------------------------------ ####
 
 def shape_key_extras_top(self, context):
-    if bpy.context.active_object is not None and bpy.context.active_object.type == 'MESH':
-        layout = self.layout
-        layout.operator("object.shape_key_duplicate", icon='DUPLICATE')
-        layout.operator("object.shape_key_split", icon='SCULPTMODE_HLT')
+    layout = self.layout
+    layout.operator("object.shape_key_duplicate", icon='DUPLICATE')
+    layout.operator("object.shape_key_split", icon='SCULPTMODE_HLT')
 
 
 def shape_key_extras_bottom(self, context):
-    if bpy.context.active_object is not None and bpy.context.active_object.type == 'MESH':
-        layout = self.layout
-        layout.separator()
-        layout.menu("OBJECT_MT_shape_key_merge", text="Merge Shape Keys")
+    layout = self.layout
+    layout.separator()
+    layout.menu("OBJECT_MT_shape_key_merge", text="Merge Shape Keys")
 
 
 class OBJECT_MT_shape_key_merge(bpy.types.Menu):
