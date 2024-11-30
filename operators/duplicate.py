@@ -3,8 +3,6 @@ from ..functions.animation import (
     transfer_animation,
 )
 from ..functions.mesh import (
-    set_active_shape_key,
-    store_shape_keys,
     store_active_shape_key,
     set_shape_key_values,
     reposition_shape_key,
@@ -28,45 +26,36 @@ class OBJECT_OT_shape_key_duplicate(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.object
+        shape_keys = obj.data.shape_keys.key_blocks
+        active_sk = obj.active_shape_key_index
         mode = context.object.mode
 
-        # Store Values
-        shape_keys, active_index, values = store_shape_keys(obj)
-        (original_shape_key, original_name, original_value, original_min, original_max,
-                            original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
-
-        if active_index == 0:
+        if active_sk == 0:
             self.report({'INFO'}, "Basis shape key can't be duplicated")
             return {'CANCELLED'}
 
+        # Store Values
+        (original_shape_key, original_name, original_value, original_min, original_max,
+                             original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
+
+
         # New Shape Key from Mix
-        for shape_key in shape_keys:
-            shape_key.value = 0.0
-
-        original_shape_key.value = 1.0
-        if original_shape_key.mute == True:
-            original_shape_key.mute = False
-
+        obj.show_only_shape_key = True
         dupe_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(dupe_shape_key, original_name, original_value, original_min, original_max,
-                            original_vertex_group, original_relation, original_mute)
+                             original_vertex_group, original_relation, original_mute)
 
-        # Copy Animation
+        # Transfer Animation
         anim_data = obj.data.shape_keys.animation_data
         if anim_data:
             transfer_animation(anim_data, original_name, dupe_shape_key)
 
 
         # Restore Values
-        for shape_key in shape_keys:
-            shape_key.value = values.get(shape_key.name, 0.0)
+        obj.show_only_shape_key = False
 
-        dupe_shape_key.value = original_value
-        if original_mute:
-            original_shape_key.mute = True
-
-        # Move Shape Keys to Correct Position in UI
-        reposition_shape_key(obj, shape_keys, active_index, mode, dupe_shape_key)
+        # move_shape_keys_to_correct_position
+        reposition_shape_key(obj, shape_keys, active_sk, mode, dupe_shape_key)
 
         return {'FINISHED'}
 

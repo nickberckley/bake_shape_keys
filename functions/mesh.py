@@ -3,18 +3,14 @@ import bpy
 
 #### ------------------------------ FUNCTIONS ------------------------------ ####
 
-def store_shape_keys(obj):
+def store_shape_key_values(obj):
     """Returns list of shape keys, active shape key index and dictionary of shape key values"""
 
-    shape_keys = obj.data.shape_keys.key_blocks
-    active = obj.active_shape_key_index
-
-    # values
-    values = {}
+    shape_key_values = {}
     for shape_key in obj.data.shape_keys.key_blocks:
-        values[shape_key.name] = shape_key.value
+        shape_key_values[shape_key.name] = shape_key.value
 
-    return shape_keys, active, values
+    return shape_key_values
 
 
 def store_active_shape_key(obj):

@@ -3,8 +3,6 @@ from ..functions.animation import (
     transfer_animation,
 )
 from ..functions.mesh import (
-    set_active_shape_key,
-    store_shape_keys,
     store_active_shape_key,
     set_shape_key_values,
     reposition_shape_key,
@@ -28,15 +26,11 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.object
+        shape_keys = obj.data.shape_keys.key_blocks
+        active_sk = obj.active_shape_key_index
         mode = context.object.mode
-        bpy.ops.object.mode_set(mode='OBJECT')
 
-        # Store Values
-        shape_keys, active_index, values = store_shape_keys(obj)
-        (original_shape_key, original_name, original_value, original_min, original_max,
-                            original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
-
-        if active_index == 0:
+        if active_sk == 0:
             self.report({'INFO'}, "Basis shape key can't be split")
             return {'CANCELLED'}
 
@@ -44,42 +38,41 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
             self.report({'INFO'}, "Nothing is selected in edit mode")
             return {'CANCELLED'}
 
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        # Store Values
+        (original_shape_key, original_name, original_value, original_min, original_max,
+                             original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
+
+
         # Create Vertex Groups
-        vertices_left = []
-        vertices_right = []
+        verts_left = []
+        verts_right = []
         for vert in obj.data.vertices:
             if vert.select == True:
-                vertices_left.append(vert.index)
+                verts_left.append(vert.index)
             else:
-                vertices_right.append(vert.index)
+                verts_right.append(vert.index)
 
         group_left = obj.vertex_groups.new(name="shape_key_split_left")
-        group_left.add(vertices_left, weight=1, type='ADD')
+        group_left.add(verts_left, weight=1, type='ADD')
 
         group_right = obj.vertex_groups.new(name="shape_key_split_right")
-        group_right.add(vertices_right, weight=1, type='ADD')
+        group_right.add(verts_right, weight=1, type='ADD')
+
 
         # create_left_key
-        for shape_key in shape_keys:
-            shape_key.value = 0.0
-
-        original_shape_key.vertex_group = 'shape_key_split_left'
-        original_shape_key.value = 1.0
-        if original_shape_key.mute == True:
-            original_shape_key.mute = False
-
+        obj.show_only_shape_key = True
+        original_shape_key.vertex_group = "shape_key_split_left"
         left_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(left_shape_key, original_name + ".split_001", original_value, original_min, original_max,
-                            original_vertex_group, original_relation, original_mute)
+                             original_vertex_group, original_relation, original_mute)
 
         # create_right_key
-        left_shape_key.value = 0.0
         original_shape_key.vertex_group = 'shape_key_split_right'
-        original_shape_key.value = 1.0
-
         right_shape_key = obj.shape_key_add(from_mix=True)
         set_shape_key_values(right_shape_key, original_name + ".split_002", original_value, original_min, original_max,
-                            original_vertex_group, original_relation, original_mute)
+                             original_vertex_group, original_relation, original_mute)
 
         # Transfer Animation
         anim_data = obj.data.shape_keys.animation_data
@@ -100,13 +93,12 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
         obj.vertex_groups.remove(group_right)
 
         # Restore Values
-        for shape_key in shape_keys:
-            shape_key.value = values.get(shape_key.name, 0.0)
+        obj.show_only_shape_key = False
         left_shape_key.value = original_value
         right_shape_key.value = original_value
 
-        # Move Shape Keys to Correct Position in UI
-        reposition_shape_key(obj, shape_keys, active_index, mode, left_shape_key, right_shape_key)
+        # move_shape_keys_to_correct_position
+        reposition_shape_key(obj, shape_keys, active_sk, mode, left_shape_key, right_shape_key)
 
         return {'FINISHED'}
 
