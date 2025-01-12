@@ -53,8 +53,7 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
 
         # Store Values
         sk_values = store_shape_key_values(obj)
-        (original_shape_key, original_name, original_value, original_min, original_max,
-                             original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
+        original_shape_key, sk_properties = store_active_shape_key(obj)
 
 
         # filter_shape_keys
@@ -88,13 +87,12 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
 
             merged_shape_key = obj.shape_key_add(from_mix=True)
 
-        set_shape_key_values(merged_shape_key, original_name + ".merged", original_value, original_min, original_max,
-                             original_vertex_group, original_relation, original_mute)
+        set_shape_key_values(merged_shape_key, sk_properties, name=sk_properties["name"] + ".merged")
 
         # Transfer Animation
         anim_data = obj.data.shape_keys.animation_data
         if anim_data:
-            transfer_animation(anim_data, original_name, merged_shape_key)
+            transfer_animation(anim_data, sk_properties["name"], merged_shape_key)
 
 
         # Remove Shape Keys
@@ -112,7 +110,7 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
         # Restore Values
         for shape_key in shape_keys:
             shape_key.value = sk_values.get(shape_key.name, 0.0)
-        merged_shape_key.value = original_value
+        merged_shape_key.value = sk_properties["value"]
 
         set_active_shape_key(obj, merged_shape_key.name)
         bpy.ops.object.mode_set(mode=mode)
@@ -156,8 +154,7 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
 
         # Store Values
         sk_values = store_shape_key_values(obj)
-        (original_shape_key, original_name, original_value, original_min, original_max,
-                             original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
+        original_shape_key, sk_properties = store_active_shape_key(obj)
 
         above_shape_key = shape_keys[active_sk - 1]
         below_shape_key = shape_keys[active_sk + 1]
@@ -175,13 +172,16 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
             original_shape_key.mute = False
 
         merged_shape_key = obj.shape_key_add(from_mix=True)
-        set_shape_key_values(merged_shape_key, original_name + ".merged", original_value, original_min, original_max,
-                             original_vertex_group, original_relation, original_mute)
+        set_shape_key_values(merged_shape_key, sk_properties, name=sk_properties["name"] + ".merged")
 
         # Transfer Animation
         anim_data = obj.data.shape_keys.animation_data
         if anim_data:
-            transfer_animation(anim_data, original_name, merged_shape_key)
+            transfer_animation(anim_data, sk_properties["name"], merged_shape_key)
+
+        # Move Shape Key to the Correct Position
+        reposition_shape_key(obj, shape_keys, active_sk, mode, merged_shape_key,
+                             offset=0 if self.direction=='TOP' else 1)
 
 
         # Remove Shape Keys
@@ -198,11 +198,7 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
         # Restore Values
         for shape_key in shape_keys:
             shape_key.value = sk_values.get(shape_key.name, 0.0)
-        merged_shape_key.value = original_value
-
-        # move_shape_keys_to_correct_position
-        reposition_shape_key(obj, shape_keys, active_sk, mode, merged_shape_key,
-                             offset=0 if self.direction=='TOP' else 1)
+        merged_shape_key.value = sk_properties["value"]
 
         return {'FINISHED'}
 

@@ -7,38 +7,32 @@ def store_shape_key_values(obj):
     """Returns list of shape keys, active shape key index and dictionary of shape key values"""
 
     shape_key_values = {}
-    for shape_key in obj.data.shape_keys.key_blocks:
-        shape_key_values[shape_key.name] = shape_key.value
+    if obj.data.shape_keys:
+        for shape_key in obj.data.shape_keys.key_blocks:
+            shape_key_values[shape_key.name] = shape_key.value
 
     return shape_key_values
 
 
 def store_active_shape_key(obj):
-    """Returns active shape key and all its properties"""
+    """Returns active shape key and dictionary of its properties"""
 
     shape_key = obj.active_shape_key
+    properties = {prop.identifier: getattr(shape_key, prop.identifier)
+                  for prop in shape_key.bl_rna.properties if not prop.is_readonly}
 
-    name = shape_key.name
-    value = shape_key.value
-    min = shape_key.slider_min
-    max = shape_key.slider_max
-    vertex_group = shape_key.vertex_group
-    relation = shape_key.relative_key
-    mute = shape_key.mute
-
-    return shape_key, name, value, min, max, vertex_group, relation, mute
+    return shape_key, properties
 
 
-def set_shape_key_values(copy, name, value, min, max, vertex_group, relation, mute):
-    """Sets values for all shape key properties"""
+def set_shape_key_values(shape_key, properties, name=None):
+    """Sets shape key properties from dictionary"""
 
-    copy.name = name
-    copy.value = value
-    copy.slider_min = min
-    copy.slider_max = max
-    copy.vertex_group = vertex_group
-    copy.relative_key = relation
-    copy.mute = mute
+    for prop, value in properties.items():
+        if hasattr(shape_key, prop):
+            if prop == 'name' and name:
+                setattr(shape_key, prop, name)
+            else:
+                setattr(shape_key, prop, value)
 
 
 def set_active_shape_key(obj, name):

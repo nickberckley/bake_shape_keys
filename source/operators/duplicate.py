@@ -34,28 +34,26 @@ class OBJECT_OT_shape_key_duplicate(bpy.types.Operator):
             self.report({'INFO'}, "Basis shape key can't be duplicated")
             return {'CANCELLED'}
 
-        # Store Values
-        (original_shape_key, original_name, original_value, original_min, original_max,
-                             original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
+        # store_values
+        original_shape_key, sk_properties = store_active_shape_key(obj)
 
 
         # New Shape Key from Mix
         obj.show_only_shape_key = True
         dupe_shape_key = obj.shape_key_add(from_mix=True)
-        set_shape_key_values(dupe_shape_key, original_name, original_value, original_min, original_max,
-                             original_vertex_group, original_relation, original_mute)
+        set_shape_key_values(dupe_shape_key, sk_properties)
 
         # Transfer Animation
         anim_data = obj.data.shape_keys.animation_data
         if anim_data:
-            transfer_animation(anim_data, original_name, dupe_shape_key)
+            transfer_animation(anim_data, sk_properties["name"], dupe_shape_key)
 
-
-        # Restore Values
-        obj.show_only_shape_key = False
-
-        # move_shape_keys_to_correct_position
+        # Move Shape Key to the Correct Position
         reposition_shape_key(obj, shape_keys, active_sk, mode, dupe_shape_key)
+
+
+        # restore_properties
+        obj.show_only_shape_key = False
 
         return {'FINISHED'}
 

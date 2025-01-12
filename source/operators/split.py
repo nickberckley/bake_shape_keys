@@ -41,8 +41,7 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
 
         # Store Values
-        (original_shape_key, original_name, original_value, original_min, original_max,
-                             original_vertex_group, original_relation, original_mute) = store_active_shape_key(obj)
+        original_shape_key, sk_properties = store_active_shape_key(obj)
 
 
         # Create Vertex Groups
@@ -65,26 +64,27 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
         obj.show_only_shape_key = True
         original_shape_key.vertex_group = "shape_key_split_left"
         left_shape_key = obj.shape_key_add(from_mix=True)
-        set_shape_key_values(left_shape_key, original_name + ".split_001", original_value, original_min, original_max,
-                             original_vertex_group, original_relation, original_mute)
+        set_shape_key_values(left_shape_key, sk_properties, name=sk_properties["name"] + ".split_001")
 
         # create_right_key
         original_shape_key.vertex_group = 'shape_key_split_right'
         right_shape_key = obj.shape_key_add(from_mix=True)
-        set_shape_key_values(right_shape_key, original_name + ".split_002", original_value, original_min, original_max,
-                             original_vertex_group, original_relation, original_mute)
+        set_shape_key_values(right_shape_key, sk_properties, name=sk_properties["name"] + ".split_002")
 
         # Transfer Animation
         anim_data = obj.data.shape_keys.animation_data
         if anim_data:
-            transfer_animation(anim_data, original_name, left_shape_key, right_shape_key)
+            transfer_animation(anim_data, sk_properties["name"], left_shape_key, right_shape_key)
+
+        # Move Shape Keys to the Correct Position
+        reposition_shape_key(obj, shape_keys, active_sk, mode, left_shape_key, right_shape_key)
 
 
         # Remove Original Shape Key
         obj.shape_key_remove(original_shape_key)
         if anim_data:
             for fcurve in anim_data.action.fcurves:
-                if fcurve.data_path == f'key_blocks["{original_name}"].value':
+                if fcurve.data_path == f'key_blocks["{sk_properties["name"]}"].value':
                     anim_data.action.fcurves.remove(fcurve)
                     break
 
@@ -92,13 +92,8 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
         obj.vertex_groups.remove(group_left)
         obj.vertex_groups.remove(group_right)
 
-        # Restore Values
+        # restore_properties
         obj.show_only_shape_key = False
-        left_shape_key.value = original_value
-        right_shape_key.value = original_value
-
-        # move_shape_keys_to_correct_position
-        reposition_shape_key(obj, shape_keys, active_sk, mode, left_shape_key, right_shape_key)
 
         return {'FINISHED'}
 
