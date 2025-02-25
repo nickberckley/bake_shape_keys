@@ -1,10 +1,13 @@
 import bpy
+
 from ..functions.animation import (
     transfer_animation,
 )
 from ..functions.mesh import (
     store_active_shape_key,
     set_shape_key_values,
+    duplicate_shape_key,
+    remove_shape_key,
     reposition_shape_key,
 )
 from ..functions.poll import (
@@ -26,11 +29,11 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.object
-        shape_keys = obj.data.shape_keys.key_blocks
-        active_sk = obj.active_shape_key_index
-        mode = context.object.mode
+        shape_keys = obj.data.shape_keys
+        active_index = obj.active_shape_key_index
+        mode = obj.mode
 
-        if active_sk == 0:
+        if active_index == 0:
             self.report({'INFO'}, "Basis shape key can't be split")
             return {'CANCELLED'}
 
@@ -38,9 +41,10 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
             self.report({'INFO'}, "Nothing is selected in edit mode")
             return {'CANCELLED'}
 
-        bpy.ops.object.mode_set(mode='OBJECT')
+        if mode == 'EDIT':
+            bpy.ops.object.mode_set(mode='OBJECT')
 
-        # Store Values
+        # store_values
         original_shape_key, sk_properties = store_active_shape_key(obj)
 
 
@@ -60,40 +64,26 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
         group_right.add(verts_right, weight=1, type='ADD')
 
 
-        # create_left_key
-        obj.show_only_shape_key = True
+        # Add Left Shape Key
         original_shape_key.vertex_group = "shape_key_split_left"
-        left_shape_key = obj.shape_key_add(from_mix=True)
+        left_shape_key = duplicate_shape_key(obj)
         set_shape_key_values(left_shape_key, sk_properties, name=sk_properties["name"] + ".split_001")
-
-        # create_right_key
-        original_shape_key.vertex_group = 'shape_key_split_right'
-        right_shape_key = obj.shape_key_add(from_mix=True)
-        set_shape_key_values(right_shape_key, sk_properties, name=sk_properties["name"] + ".split_002")
-
-        # Transfer Animation
-        anim_data = obj.data.shape_keys.animation_data
-        if anim_data:
-            transfer_animation(anim_data, sk_properties["name"], left_shape_key, right_shape_key)
-
-        # Move Shape Keys to the Correct Position
-        reposition_shape_key(obj, shape_keys, active_sk, mode, left_shape_key, right_shape_key)
-
-
-        # Remove Original Shape Key
-        obj.shape_key_remove(original_shape_key)
-        if anim_data:
-            for fcurve in anim_data.action.fcurves:
-                if fcurve.data_path == f'key_blocks["{sk_properties["name"]}"].value':
-                    anim_data.action.fcurves.remove(fcurve)
-                    break
-
-        # Remove Vertex Groups
         obj.vertex_groups.remove(group_left)
+
+        # Add Right Shape Key
+        original_shape_key.vertex_group = 'shape_key_split_right'
+        right_shape_key = duplicate_shape_key(obj)
+        set_shape_key_values(right_shape_key, sk_properties, name=sk_properties["name"] + ".split_002")
         obj.vertex_groups.remove(group_right)
 
-        # restore_properties
-        obj.show_only_shape_key = False
+        # Transfer Animation
+        transfer_animation(shape_keys, original_shape_key, left_shape_key, right_shape_key)
+
+        # Move Shape Keys to the Correct Position
+        reposition_shape_key(obj, shape_keys, active_index, left_shape_key, right_shape_key, mode=mode)
+
+        # Remove Original Shape Key
+        remove_shape_key(obj, original_shape_key)
 
         return {'FINISHED'}
 

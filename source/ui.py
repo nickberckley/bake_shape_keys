@@ -1,4 +1,6 @@
-import bpy, os
+import bpy
+import os
+
 from .functions.poll import shape_key_poll
 
 

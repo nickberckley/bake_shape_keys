@@ -9,7 +9,7 @@ def shape_key_poll(context):
     if context.object:
         obj = context.object
         if obj.type in ('MESH'):
-            if (obj.data.shape_keys and len(obj.data.shape_keys.key_blocks) >= 2):
+            if obj.data.shape_keys and len(obj.data.shape_keys.key_blocks) >= 2:
                 return True
             else:
                 return False
@@ -20,16 +20,11 @@ def shape_key_poll(context):
 
 
 def animation_poll(context):
-    """Check that shape keys on `context.object` are animated"""
+    """Checks that shape keys of `context.object` are animated"""
 
-    if context.object:
-        obj = context.object
-        if obj.data.shape_keys:
-            shape_keys = obj.data.shape_keys
-            if shape_keys.animation_data:
-                return True
-            else:
-                return False
+    if shape_key_poll(context):
+        if context.object.data.shape_keys.animation_data:
+            return True
         else:
             return False
     else:

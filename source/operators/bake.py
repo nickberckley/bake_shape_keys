@@ -1,4 +1,5 @@
 import bpy
+
 from ..functions.poll import (
     shape_key_poll,
     animation_poll,
@@ -10,6 +11,7 @@ from ..functions.poll import (
 class OBJECT_OT_shape_key_keyframe_all(bpy.types.Operator):
     bl_idname = "object.shape_key_keyframe_all"
     bl_label = "Insert Keyframe for All Shape Keys"
+    bl_description = "Keyframe all shape keys of the active object"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -58,17 +60,22 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         default = True
     )
 
-
     @classmethod
     def poll(cls, context):
-        return shape_key_poll(context) and animation_poll(context)
+        if shape_key_poll(context):
+            if animation_poll(context):
+                return True
+            else:
+                cls.poll_message_set("Shape keys on active object are not animated")
+                return False
+        else:
+            return False
 
     def invoke(self, context, event):
         self.start_frame = context.scene.frame_start
         self.end_frame = context.scene.frame_end
 
         return context.window_manager.invoke_props_dialog(self)
-
 
     def execute(self, context):
         # define_frame_range

@@ -1,4 +1,5 @@
 import bpy
+
 from ..functions.poll import (
     shape_key_poll,
     animation_poll,
@@ -67,11 +68,20 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return shape_key_poll(context) and animation_poll(context)
+        if shape_key_poll(context):
+            if animation_poll(context):
+                return True
+            else:
+                cls.poll_message_set("Shape keys on active object are not animated")
+                return False
+        else:
+            return False
+
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
-    
+
+
     def execute(self, context):
         obj = context.active_object
         move_axis_index = 'XYZ'.index(self.move_axis)
@@ -157,7 +167,8 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
         obj.hide_set(True)
 
         return {'FINISHED'}
-    
+
+
     def _get_name(self, key):
         value = key.value
         if value.is_integer():
@@ -168,7 +179,8 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
             integer_part = chr(int(value) + 64)
             decimal_part = str(int((value % 1) * 100))
             return f"{integer_part}{decimal_part}"
-    
+
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -191,64 +203,6 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
         
         if self.keep_position:
             col2.enabled = False
-
-
-#class OBJECT_OT_shape_key_renamer(bpy.types.Operator):
-#    bl_idname = "object.shape_key_renamer"
-#    bl_label = "Rename Object After Shape Key Values"
-#    bl_options = {'REGISTER', 'UNDO'}
-
-#    def execute(self, context):
-#        mesh = context.object.data
-#        if mesh is not None:
-#            name = ''.join([self._get_name(key) for key in mesh.shape_keys.key_blocks if key.name != 'Basis'])
-#            if len(name) < 6:
-#                mesh.data.name = obj.name + "_ShapeKey_" + name
-#            else:
-#                mesh.data.name = name
-#        return {'FINISHED'}
-
-#    def _get_name(self, key):
-#        value = key.value
-#        if value.is_integer():
-#            return chr(int(value) + 65)
-#        elif value < 1:
-#            return str(int(value * 100))
-#        else:
-#            integer_part = chr(int(value) + 64)
-#            decimal_part = str(int((value % 1) * 100))
-#            return f"{integer_part}{decimal_part}"
-        
-
-#class OBJECT_OT_copy_data_names(bpy.types.Operator):
-#    bl_idname = "object.copy_data_names"
-#    bl_label = "Copy Data Names"
-#    bl_description = "Copy Object Data Names to Clipboard"
-#    
-#    def execute(self, context):
-#        mesh_names = []
-#        for obj in bpy.context.selected_objects:
-#            mesh_names.append(obj.data.name)
-#        clipboard_text = '\n'.join(mesh_names)
-#        bpy.context.window_manager.clipboard = clipboard_text
-#        self.report({'INFO'}, "Object data names copied to clipboard")
-#        return {'FINISHED'}
-
-
-#class OBJECT_OT_copy_data_names_collection(bpy.types.Operator):
-#    bl_idname = "object.copy_collection_data_names"
-#    bl_label = "Copy Data Names"
-#    bl_description = "Copy Object Data Names to Clipboard for All Objects Inside the Collection"
-#    
-#    def execute(self, context):
-#        collection = context.collection
-#        mesh_names = []
-#        for obj in collection.objects:
-#            mesh_names.append(obj.data.name)
-#        clipboard_text = '\n'.join(mesh_names)
-#        bpy.context.window_manager.clipboard = clipboard_text
-#        self.report({'INFO'}, "Object data names copied to clipboard")
-#        return {'FINISHED'}
             
 
 
@@ -256,9 +210,6 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
 
 classes = [
     OBJECT_OT_objects_from_shape_keys,
-    # OBJECT_OT_shape_key_renamer,
-    # OBJECT_OT_copy_data_names,
-    # OBJECT_OT_copy_data_names_collection,
 ]
 
 def register():

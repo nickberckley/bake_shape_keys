@@ -36,7 +36,6 @@ class OBJECT_PT_shape_key_copy(bpy.types.Operator):
         else:
             return False
 
-
     def execute(self, context):
         sources = context.selected_objects
         target = context.active_object
