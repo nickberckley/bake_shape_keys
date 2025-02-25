@@ -57,10 +57,14 @@ def remove_shape_key(obj, shape_key):
     # Remove Animation Data
     anim_data = obj.data.shape_keys.animation_data
     if anim_data:
-        for fcurve in anim_data.action.fcurves:
-            if fcurve.data_path == f'key_blocks["{shape_key.name}"].value':
-                anim_data.action.fcurves.remove(fcurve)
-                break
+        if anim_data.action is not None:
+            for fcurve in anim_data.action.fcurves:
+                if fcurve.data_path == f'key_blocks["{shape_key.name}"].value':
+                    anim_data.action.fcurves.remove(fcurve)
+
+        for driver in anim_data.drivers:
+            if driver.data_path == f'key_blocks["{shape_key.name}"].value':
+                anim_data.drivers.remove(driver)
 
     # Remove Shape Key
     obj.shape_key_remove(shape_key)
