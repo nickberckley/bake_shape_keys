@@ -18,8 +18,8 @@ from ..functions.poll import (
 
 class OBJECT_OT_shape_key_duplicate(bpy.types.Operator):
     bl_idname = "object.shape_key_duplicate"
-    bl_label = "Duplicate Shape Key"
-    bl_description = "Make a duplicated copy of an active shape key"
+    bl_label = "Duplicate Shape Key (with Animation)"
+    bl_description = "Make a duplicated copy of an active shape key with it's animation & drivers"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod

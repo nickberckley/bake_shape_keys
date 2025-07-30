@@ -33,7 +33,7 @@ def shape_keys_panel(self, context):
 def copy_menu(self, context):
     layout = self.layout
     layout.separator()
-    layout.operator("object.shape_key_copy")
+    layout.operator("object.shape_key_transfer_all")
 
 
 

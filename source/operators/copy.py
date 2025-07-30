@@ -3,10 +3,10 @@ import bpy
 
 ##### ---------------------------------- OPERATORS ---------------------------------- #####
 
-class OBJECT_PT_shape_key_copy(bpy.types.Operator):
+class OBJECT_PT_shape_key_transfer_all(bpy.types.Operator):
     # Idea and original code by Robert Rioux (Blender Bob)
 
-    bl_idname = "object.shape_key_copy"
+    bl_idname = "object.shape_key_transfer_all"
     bl_label = "Copy Shape Keys"
     bl_description = ("Transfer shape keys from selected objects to active object\n"
                       "Vertex positions are transferred by index. Different number of vertices or index will give unpredictable results")
@@ -93,13 +93,13 @@ class OBJECT_PT_shape_key_copy(bpy.types.Operator):
 
         self.report({'INFO'}, f"Shape keys copied from selected objects to '{target.name}'")
         return {'FINISHED'}
-    
+
 
 
 ##### ---------------------------------- REGISTRATION ---------------------------------- #####
 
 classes = [
-    OBJECT_PT_shape_key_copy,
+    OBJECT_PT_shape_key_transfer_all,
 ]
 
 def register():
