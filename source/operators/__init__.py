@@ -1,13 +1,24 @@
-import bpy
+if "bpy" in locals():
+    import importlib
+    for mod in [bake,
+                copy,
+                duplicate,
+                merge,
+                objects,
+                split,
+                ]:
+        importlib.reload(mod)
+else:
+    import bpy
+    from . import (
+        bake,
+        copy,
+        duplicate,
+        merge,
+        objects,
+        split,
+    )
 
-from . import(
-    bake,
-    copy,
-    duplicate,
-    merge,
-    objects,
-    split,
-)
 
 #### ------------------------------ REGISTRATION ------------------------------ ####
 
