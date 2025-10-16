@@ -36,16 +36,13 @@ def copy_menu(self, context):
     layout.operator("object.shape_key_transfer_all")
 
 
-
-#### ------------------------------ /specials/ ------------------------------ ####
-
-def shape_key_extras_top(self, context):
+def shape_key_context_menu(self, context):
     layout = self.layout
-    layout.operator("object.shape_key_duplicate", icon='DUPLICATE')
-    layout.operator("object.shape_key_split", icon='SCULPTMODE_HLT')
+    layout.operator("object.shape_key_split", text="Split", icon='SCULPTMODE_HLT')
+    layout.operator("object.shape_key_duplicate", text="Duplicate (w/ Animation)", icon='DUPLICATE')
 
 
-def shape_key_extras_bottom(self, context):
+def shape_key_extras(self, context):
     layout = self.layout
     layout.separator()
     layout.menu("OBJECT_MT_shape_key_merge", text="Merge Shape Keys")
@@ -89,8 +86,8 @@ def register():
     # MENUS
     bpy.types.VIEW3D_MT_object_animation.append(animation_menu)
     bpy.types.DATA_PT_shape_keys.append(shape_keys_panel)
-    bpy.types.MESH_MT_shape_key_context_menu.prepend(shape_key_extras_top)
-    bpy.types.MESH_MT_shape_key_context_menu.append(shape_key_extras_bottom)
+    bpy.types.MESH_MT_shape_key_tree_context_menu.prepend(shape_key_context_menu)
+    bpy.types.MESH_MT_shape_key_context_menu.append(shape_key_extras)
     bpy.types.VIEW3D_MT_make_links.append(copy_menu)
 
 
@@ -105,7 +102,7 @@ def unregister():
 
     # MENUS
     bpy.types.VIEW3D_MT_object_animation.remove(animation_menu)
-    bpy.types.MESH_MT_shape_key_context_menu.remove(shape_key_extras_top)
-    bpy.types.MESH_MT_shape_key_context_menu.remove(shape_key_extras_bottom)
+    bpy.types.MESH_MT_shape_key_tree_context_menu.remove(shape_key_context_menu)
+    bpy.types.MESH_MT_shape_key_context_menu.remove(shape_key_extras)
     bpy.types.DATA_PT_shape_keys.remove(shape_keys_panel)
     bpy.types.VIEW3D_MT_make_links.remove(copy_menu)
