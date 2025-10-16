@@ -54,11 +54,11 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
         if mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        # store_values
+        # Get shape keys and their properties
         sk_values = store_shape_key_values(obj)
         original_shape_key, sk_properties = store_active_shape_key(obj)
 
-        # filter_shape_keys
+        # Filter shape keys
         shape_keys_above = []
         shape_keys_below = []
         for i, key in enumerate(shape_keys.key_blocks):
@@ -68,7 +68,6 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
                 shape_keys_above.append(key)
             else:
                 shape_keys_below.append(key)
-
 
         # Merge Up
         if self.direction == 'TOP':
@@ -86,18 +85,16 @@ class OBJECT_OT_shape_key_merge_all(bpy.types.Operator):
 
             merged_shape_key = obj.shape_key_add(from_mix=True)
 
+        # Transfer properties & animation
         set_shape_key_values(merged_shape_key, sk_properties, name=sk_properties["name"] + ".merged")
-
-        # Transfer Animation
         transfer_animation(shape_keys, original_shape_key, merged_shape_key)
 
-        # Remove Shape Keys
+        # Remove shape keys
         filtered_shape_keys = shape_keys_above if self.direction == 'TOP' else shape_keys_below
         for shape_key in filtered_shape_keys + [original_shape_key]:
             remove_shape_key(obj, shape_key)
 
-
-        # Restore Values
+        # Restore values
         for shape_key in shape_keys.key_blocks:
             shape_key.value = sk_values.get(shape_key.name, 0.0)
 
@@ -146,12 +143,11 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
         if mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        # store_values
+        # Get shape keys and their properties
         sk_values = store_shape_key_values(obj)
         original_shape_key, sk_properties = store_active_shape_key(obj)
         above_shape_key = shape_keys.key_blocks[active_index - 1]
         below_shape_key = shape_keys.key_blocks[active_index + 1] if active_index != len(shape_keys.key_blocks) - 1 else None
-
 
         # New Shape Key from Mix
         for shape_key in shape_keys.key_blocks:
@@ -162,22 +158,21 @@ class OBJECT_OT_shape_key_merge(bpy.types.Operator):
                     shape_key.value = 0.0
 
         merged_shape_key = obj.shape_key_add(from_mix=True)
-        set_shape_key_values(merged_shape_key, sk_properties, name=sk_properties["name"] + ".merged")
 
-        # Transfer Animation
+        # Transfer properties & animation
+        set_shape_key_values(merged_shape_key, sk_properties, name=sk_properties["name"] + ".merged")
         transfer_animation(shape_keys, original_shape_key, merged_shape_key)
 
-        # Move Shape Key to the Correct Position
+        # Move the shape key to the correct position in the UI
         reposition_shape_key(obj, shape_keys, active_index, merged_shape_key,
                              mode=mode, offset=0 if self.direction=='TOP' else 1)
 
-        # Remove Shape Keys
+        # Remove shape keys
         filtered_shape_keys = [original_shape_key, above_shape_key if self.direction=='TOP' else below_shape_key]
         for shape_key in filtered_shape_keys:
             remove_shape_key(obj, shape_key)
 
-
-        # Restore Values
+        # Restore values
         for shape_key in shape_keys.key_blocks:
             shape_key.value = sk_values.get(shape_key.name, 0.0)
 

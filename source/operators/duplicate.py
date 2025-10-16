@@ -19,7 +19,7 @@ from ..functions.poll import (
 class OBJECT_OT_shape_key_duplicate(bpy.types.Operator):
     bl_idname = "object.shape_key_duplicate"
     bl_label = "Duplicate Shape Key (with Animation)"
-    bl_description = "Make a duplicated copy of an active shape key with it's animation & drivers"
+    bl_description = "Make a duplicated copy of an active shape key with its animation & drivers"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -36,18 +36,15 @@ class OBJECT_OT_shape_key_duplicate(bpy.types.Operator):
             self.report({'INFO'}, "Basis shape key can't be duplicated")
             return {'CANCELLED'}
 
-        # store_values
+        # Get the active shape key and its properties
         original_shape_key, sk_properties = store_active_shape_key(obj)
 
-
-        # New Shape Key from Mix
+        # Duplicate shape key and transfer properties & animation
         dupe_shape_key = duplicate_shape_key(obj)
         set_shape_key_values(dupe_shape_key, sk_properties)
-
-        # Transfer Animation
         transfer_animation(shape_keys, original_shape_key, dupe_shape_key)
 
-        # Move Shape Key to the Correct Position
+        # Move the shape key to the correct position in the UI
         reposition_shape_key(obj, shape_keys, active_index, dupe_shape_key, mode=mode)
 
         return {'FINISHED'}

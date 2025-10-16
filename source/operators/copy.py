@@ -3,19 +3,21 @@ import bpy
 
 ##### ---------------------------------- OPERATORS ---------------------------------- #####
 
-class OBJECT_PT_shape_key_transfer_all(bpy.types.Operator):
+class OBJECT_OT_shape_key_transfer_all(bpy.types.Operator):
     # Idea and original code by Robert Rioux (Blender Bob)
 
     bl_idname = "object.shape_key_transfer_all"
     bl_label = "Copy Shape Keys"
-    bl_description = ("Transfer shape keys from selected objects to active object\n"
-                      "Vertex positions are transferred by index. Different number of vertices or index will give unpredictable results")
+    bl_description = ("Transfer shape keys from selected object(s) to active object.\n"
+                      "Vertex positions of shape keys are transferred by matching indices.\n"
+                      "If selected object(s) have different number of vertices than the active object\n"
+                      "or the indices between them do not match results will be unpredictable\n")
     bl_options = {'REGISTER', 'UNDO'}
 
     existing_only: bpy.props.BoolProperty(
         name = "Only for Existing Keys",
         description = ("Instead of creating new shape keys, operator will transfer vertex positions and shape key values\n"
-                       "to existing shape keys on target object with same names as ones on source objects")
+                       "to existing shape keys on target (active) object with same names as ones on source (selected) objects")
     )
     copy_values: bpy.props.BoolProperty(
         name = "Copy Values",
@@ -25,16 +27,14 @@ class OBJECT_PT_shape_key_transfer_all(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.active_object:
-            if context.mode == 'OBJECT':
-                if len(context.selected_objects) > 1:
-                    return True
-                else:
-                    return False
-            else:
-                return False
-        else:
+        if not context.active_object:
             return False
+        if not context.mode == 'OBJECT':
+            return False
+        if len(context.selected_objects) <= 1:
+            return False
+        else:
+            return True
 
     def execute(self, context):
         sources = context.selected_objects
@@ -99,7 +99,7 @@ class OBJECT_PT_shape_key_transfer_all(bpy.types.Operator):
 ##### ---------------------------------- REGISTRATION ---------------------------------- #####
 
 classes = [
-    OBJECT_PT_shape_key_transfer_all,
+    OBJECT_OT_shape_key_transfer_all,
 ]
 
 def register():

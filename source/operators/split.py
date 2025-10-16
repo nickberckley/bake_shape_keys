@@ -44,9 +44,8 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
         if mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        # store_values
+        # Get the active shape key and its properties
         original_shape_key, sk_properties = store_active_shape_key(obj)
-
 
         # Create Vertex Groups
         verts_left = []
@@ -79,10 +78,10 @@ class OBJECT_OT_shape_key_split(bpy.types.Operator):
         # Transfer Animation
         transfer_animation(shape_keys, original_shape_key, left_shape_key, right_shape_key)
 
-        # Move Shape Keys to the Correct Position
+        # Move the shape key to the correct position in the UI
         reposition_shape_key(obj, shape_keys, active_index, left_shape_key, right_shape_key, mode=mode)
 
-        # Remove Original Shape Key
+        # Remove the original shape key
         remove_shape_key(obj, original_shape_key)
 
         return {'FINISHED'}

@@ -4,7 +4,7 @@ import bpy
 #### ------------------------------ FUNCTIONS ------------------------------ ####
 
 def store_shape_key_values(obj):
-    """Returns dict of shape keys and their values"""
+    """Returns a dictionary of shape keys and their values"""
 
     shape_key_values = {}
     if obj.data.shape_keys:
@@ -24,7 +24,7 @@ def store_active_shape_key(obj):
     return shape_key, properties
 
 
-def set_shape_key_values(shape_key, properties, name=None):
+def set_shape_key_values(shape_key, properties: dict, name=None):
     """Sets shape key properties from given `properties` dictionary"""
 
     for prop, value in properties.items():

@@ -9,16 +9,13 @@ from .functions.poll import shape_key_poll
 def animation_menu(self, context):
     layout = self.layout
 
-    # import_icons
-    pcoll = preview_collections["main"]
-    keyframe_shape_key = pcoll["keyframe_shape_key"]
-    bake_shape_key = pcoll["bake_shape_key"]
-
     if context.mode == 'OBJECT':
-        layout.separator()
-        layout.operator("object.shape_key_keyframe_all", text="Insert Keyframe for Shape Keys", icon_value=keyframe_shape_key.icon_id)
+        # import_icons
+        pcoll = preview_collections["main"]
+        keyframe_shape_key = pcoll["keyframe_shape_key"]
+        bake_shape_key = pcoll["bake_shape_key"]
+
         layout.operator("object.shape_key_action_bake", icon_value=bake_shape_key.icon_id)
-        layout.operator("object.objects_from_shape_keys")
 
 
 def shape_keys_panel(self, context):
@@ -46,6 +43,7 @@ def shape_key_extras(self, context):
     layout = self.layout
     layout.separator()
     layout.menu("OBJECT_MT_shape_key_merge", text="Merge Shape Keys")
+    layout.operator("object.objects_from_shape_keys")
 
 
 class OBJECT_MT_shape_key_merge(bpy.types.Menu):

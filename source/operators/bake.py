@@ -10,7 +10,7 @@ from ..functions.poll import (
 
 class OBJECT_OT_shape_key_keyframe_all(bpy.types.Operator):
     bl_idname = "object.shape_key_keyframe_all"
-    bl_label = "Insert Keyframe for All Shape Keys"
+    bl_label = "Keyframe All Shape Key Values"
     bl_description = "Keyframe all shape keys of the active object"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -21,8 +21,10 @@ class OBJECT_OT_shape_key_keyframe_all(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         for key in obj.data.shape_keys.key_blocks:
-            if key != obj.data.shape_keys.key_blocks[0]:
-                key.keyframe_insert("value")
+            # Skip 'Basis' Key
+            if key == obj.data.shape_keys.key_blocks[0]:
+                continue
+            key.keyframe_insert("value")
 
         return {'FINISHED'}
 
@@ -56,7 +58,7 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
 
     constant_interpolation: bpy.props.BoolProperty(
         name = "Constant Interpolation",
-        description = "Inserted keyframes will have constant interpolation between them",
+        description = "All inserted keyframes will have constant interpolation",
         default = True
     )
 
@@ -71,6 +73,24 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         else:
             return False
 
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        # frame_range
+        layout.prop(self, "follow_scene_range")
+        col = layout.column(align=True)
+        row = col.row()
+        row.prop(self, "start_frame", text="Frame Range")
+        row.prop(self, "end_frame", text="")
+        if self.follow_scene_range:
+            col.enabled = False
+
+        layout.prop(self, "step")
+
+        layout.separator()
+        layout.prop(self, "constant_interpolation")
+
     def invoke(self, context, event):
         self.start_frame = context.scene.frame_start
         self.end_frame = context.scene.frame_end
@@ -84,17 +104,17 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
             self.start_frame = context.scene.frame_start
             self.end_frame = context.scene.frame_end
 
-
         for obj in context.selected_objects:
             shape_keys = obj.data.shape_keys.key_blocks
             basis = shape_keys[0]
 
             # Inserting Keyframes
-            for key in shape_keys:
-                if key != basis:
-                    for frame in range(self.start_frame, self.end_frame + 1, self.step):
-                        context.scene.frame_set(frame)
-                        key.keyframe_insert(data_path="value")
+            for frame in range(self.start_frame, self.end_frame + 1, self.step):
+                context.scene.frame_set(frame)
+                for key in shape_keys:
+                    if key == basis:
+                        continue
+                    key.keyframe_insert(data_path="value")
 
             # Set Constant Interpolation
             if self.constant_interpolation:
@@ -108,28 +128,9 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
                         if self.start_frame <= keyframe.co[0] <= self.end_frame:
                             keyframe.interpolation = 'CONSTANT'
 
-
         context.scene.frame_set(initial_frame)
-        self.report({'INFO'}, "Shape key action successfully baked for selected object(s)")        
+        self.report({'INFO'}, "Shape key action successfully baked for selected object(s)")
         return {'FINISHED'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        # frame_range
-        layout.prop(self, "follow_scene_range")
-        col = layout.column(align=True)
-        row = col.row()
-        row.prop(self, "start_frame", text="Frame Range")
-        row.prop(self, "end_frame", text="")
-        layout.prop(self, "step")
-
-        layout.separator()
-        layout.prop(self, "constant_interpolation")
-
-        if self.follow_scene_range:
-            col.enabled = False
 
 
 
