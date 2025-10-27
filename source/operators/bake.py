@@ -1,5 +1,8 @@
 import bpy
 
+from ..functions.animation import (
+    ensure_channelbag,
+)
 from ..functions.poll import (
     shape_key_poll,
     animation_poll,
@@ -118,7 +121,8 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
 
             # Set Constant Interpolation
             if self.constant_interpolation:
-                for fcurve in obj.data.shape_keys.animation_data.action.fcurves:
+                channelbag = ensure_channelbag(obj.data.shape_keys)
+                for fcurve in channelbag.fcurves:
                     if not fcurve.data_path.startswith("key_blocks"):
                         continue
                     if basis.name in fcurve.data_path:

@@ -1,7 +1,30 @@
 import bpy
 
+from bpy_extras.anim_utils import action_ensure_channelbag_for_slot
+
 
 #### ------------------------------ FUNCTIONS ------------------------------ ####
+
+def ensure_channelbag(data_block):
+    """Returns the channelbag of f-curves for a given ID, or None if ID doesn't have anim_data, action, or slot."""
+
+    anim_data = data_block.animation_data
+    if anim_data is None:
+        return None
+
+    action = anim_data.action
+    if action is None:
+        return None
+    if action.is_empty:
+        return None
+
+    if anim_data.action_slot is None:
+        return None
+
+    channelbag = action_ensure_channelbag_for_slot(action, anim_data.action_slot)
+
+    return channelbag
+
 
 def transfer_animation(shape_keys, source, *targets):
     """Transfers animation (f-curve properties, keyframes, f-curve modifiers, and drivers) from one shape key to another"""
@@ -10,14 +33,15 @@ def transfer_animation(shape_keys, source, *targets):
     if anim_data is None:
         return
 
-    # Transfer F-Curves
-    if anim_data.action is not None:
-        for fcurve in anim_data.action.fcurves:
+    channelbag = ensure_channelbag(shape_keys)
+    if channelbag is not None:
+        # Transfer F-Curves
+        for fcurve in channelbag.fcurves:
             if fcurve.data_path == f'key_blocks["{source.name}"].value':
                 # get_original_fcurve_properties
                 original_fcurve_group = fcurve.group.name if fcurve.group else ""
                 original_fcurve_properties = {prop.identifier: getattr(fcurve, prop.identifier)
-                                              for prop in fcurve.bl_rna.properties if not prop.is_readonly}
+                                                for prop in fcurve.bl_rna.properties if not prop.is_readonly}
 
                 # get_original_keyframes
                 original_keyframes = {}
@@ -33,7 +57,7 @@ def transfer_animation(shape_keys, source, *targets):
 
 
                 for target in targets:
-                    target_fcurve = anim_data.action.fcurves.new(f'key_blocks["{target.name}"].value', action_group=original_fcurve_group)
+                    target_fcurve = channelbag.fcurves.new(f'key_blocks["{target.name}"].value', group_name=original_fcurve_group)
 
                     # copy_fcurve_properties
                     for prop, value in original_fcurve_properties.items():

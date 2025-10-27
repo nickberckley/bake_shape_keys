@@ -1,6 +1,9 @@
 import bpy
 import numpy
 
+from ..functions.animation import (
+    ensure_channelbag,
+)
 from ..functions.poll import (
     shape_key_poll,
     animation_poll,
@@ -139,7 +142,8 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
         # define_frame_range
         if self.keyframes_only:
             frame_range = set()
-            for fcurve in obj.data.shape_keys.animation_data.action.fcurves:
+            channelbag = ensure_channelbag(obj.data.shape_keys)
+            for fcurve in channelbag.fcurves:
                 if fcurve.data_path.startswith("key_blocks"):
                     frame_range.update(int(keyframe.co[0]) for keyframe in fcurve.keyframe_points)
             frame_range &= set(range(self.start_frame, self.end_frame + 1, self.step))

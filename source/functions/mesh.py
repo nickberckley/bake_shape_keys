@@ -1,5 +1,7 @@
 import bpy
 
+from .animation import ensure_channelbag
+
 
 #### ------------------------------ FUNCTIONS ------------------------------ ####
 
@@ -54,19 +56,22 @@ def duplicate_shape_key(obj):
 def remove_shape_key(obj, shape_key):
     """Removes given shape key from object and deletes it's animation data"""
 
-    # Remove Animation Data
-    anim_data = obj.data.shape_keys.animation_data
-    if anim_data:
-        if anim_data.action is not None:
-            for fcurve in anim_data.action.fcurves:
-                if fcurve.data_path == f'key_blocks["{shape_key.name}"].value':
-                    anim_data.action.fcurves.remove(fcurve)
+    # Remove f-curve and/or driver.
+    channelbag = ensure_channelbag(obj.data.shape_keys)
+    if channelbag:
+        for fcurve in channelbag.fcurves:
+            if fcurve.data_path == f'key_blocks["{shape_key.name}"].value':
+                channelbag.fcurves.remove(fcurve)
+                break
 
+    if obj.data.shape_keys.animation_data:
+        anim_data = obj.data.shape_keys.animation_data
         for driver in anim_data.drivers:
             if driver.data_path == f'key_blocks["{shape_key.name}"].value':
                 anim_data.drivers.remove(driver)
+                break
 
-    # Remove Shape Key
+    # Remove the shape key.
     obj.shape_key_remove(shape_key)
 
 
