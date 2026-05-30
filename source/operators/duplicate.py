@@ -10,7 +10,7 @@ from ..functions.mesh import (
     reposition_shape_key,
 )
 from ..functions.poll import (
-    shape_key_poll,
+    has_shape_keys,
 )
 
 
@@ -24,7 +24,7 @@ class OBJECT_OT_shape_key_duplicate(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return shape_key_poll(context)
+        return has_shape_keys(context.object)
 
     def execute(self, context):
         obj = context.object

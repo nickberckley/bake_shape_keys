@@ -5,8 +5,7 @@ from ..functions.animation import (
     ensure_channelbag,
 )
 from ..functions.poll import (
-    shape_key_poll,
-    animation_poll,
+    has_shape_keys,
 )
 
 
@@ -82,10 +81,8 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if not shape_key_poll(context):
-            return False
-        if not animation_poll(context):
-            cls.poll_message_set("Shape keys on active object are not animated")
+        if not has_shape_keys(context.object, check_animated=True):
+            cls.poll_message_set("Active object does not have shape keys or they are not animated")
             return False
         else:
             return True

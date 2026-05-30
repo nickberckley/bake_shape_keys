@@ -1,7 +1,7 @@
 import bpy
 import os
 
-from .functions.poll import shape_key_poll
+from .functions.poll import has_shape_keys
 
 
 #### ------------------------------ MENUS ------------------------------ ####
@@ -22,7 +22,7 @@ def shape_keys_panel(self, context):
     layout = self.layout
     obj = context.active_object
 
-    if shape_key_poll(context) and len(obj.data.shape_keys.key_blocks) >= 3:
+    if has_shape_keys(obj) and len(obj.data.shape_keys.key_blocks) >= 3:
         layout.separator()
         layout.operator("object.shape_key_keyframe_all", text="Keyframe All Shape Keys")
 

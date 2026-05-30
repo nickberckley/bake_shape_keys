@@ -4,8 +4,7 @@ from ..functions.animation import (
     ensure_channelbag,
 )
 from ..functions.poll import (
-    shape_key_poll,
-    animation_poll,
+    has_shape_keys,
 )
 
 
@@ -19,7 +18,7 @@ class OBJECT_OT_shape_key_keyframe_all(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return shape_key_poll(context)
+        return has_shape_keys(context.object)
 
     def execute(self, context):
         obj = context.object
@@ -65,17 +64,6 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         default = True
     )
 
-    @classmethod
-    def poll(cls, context):
-        if shape_key_poll(context):
-            if animation_poll(context):
-                return True
-            else:
-                cls.poll_message_set("Shape keys on active object are not animated")
-                return False
-        else:
-            return False
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -107,7 +95,13 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
             self.start_frame = context.scene.frame_start
             self.end_frame = context.scene.frame_end
 
-        for obj in context.selected_objects:
+        # Filter Selection
+        objects = self._filter_objects(context)
+        if len(objects) == 0:
+            self.report({'WARNING'}, "No objects with animated shape keys in selection")
+            return {'CANCELLED'}
+
+        for obj in objects:
             shape_keys = obj.data.shape_keys.key_blocks
             basis = shape_keys[0]
 
@@ -136,6 +130,20 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         self.report({'INFO'}, "Shape key action successfully baked for selected object(s)")
         return {'FINISHED'}
 
+    def _filter_objects(self, context):
+        """Get the list of applicable objects (with animated shape keys)."""
+
+        # Initial list of selected objects.
+        objects = list(context.selected_objects)
+        if context.active_object not in objects:
+            objects.append(context.active_object)
+
+        filtered = []
+        for obj in objects:
+            if has_shape_keys(obj, check_animated=True):
+                filtered.append(obj)
+
+        return filtered
 
 
 ##### ---------------------------------- REGISTERING ---------------------------------- #####
