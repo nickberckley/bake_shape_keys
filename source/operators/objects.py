@@ -133,6 +133,7 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
         obj = context.object
         initial_frame = context.scene.frame_current
         move_axis_index = 'XYZ'.index(self.move_axis)
+        garbage_shape_keys = []
 
         # Create the Collection
         duplicates_collection = bpy.data.collections.new(obj.name + "_duplicates")
@@ -179,6 +180,7 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
                 obj_copy.data = obj.data.copy()
                 obj_copy.name = obj_copy.data.name = obj.name + "_frame_" + str(frame)
                 duplicates_collection.objects.link(obj_copy)
+                garbage_shape_keys.append(obj_copy.data.shape_keys.name)
 
                 # Cache shape key values to the dict of uniques
                 if self.delete_duplicates:
@@ -207,6 +209,9 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
         context.scene.frame_set(initial_frame)
         if self.hide_duplicates:
             duplicates_collection.hide_viewport = True
+
+        # Remove userless shape keys IDs.
+        self._clean_up_shape_keys(garbage_shape_keys)
 
         # Report
         num_duplicates = len(duplicates_collection.objects)
@@ -275,6 +280,19 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
 
         return sk_values, match
 
+
+    def _clean_up_shape_keys(self, garbage_shape_keys):
+        """
+        NOTE: This is needed because applying/removing shape keys immediately after
+        copying the object doesn't remove keys. This is a bug in Blender. Also, since
+        there is no `BlendDataShapeKeys` collection we can't directly remove keys.
+        Instead, they're left orphaned, so only refreshing Blender or purge operator
+        can remove them, otherwise they stay in the .blend file forever.
+        """
+
+        for key in bpy.data.shape_keys:
+            if key.name in garbage_shape_keys:
+                key.user_clear()
 
 
 ##### ---------------------------------- REGISTERING ---------------------------------- #####
