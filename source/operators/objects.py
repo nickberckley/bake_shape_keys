@@ -31,12 +31,12 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
         default=False,
     )
 
-    start_frame: bpy.props.IntProperty(
+    frame_start: bpy.props.IntProperty(
         name="Start Frame",
         min=1,
         default=1,
     )
-    end_frame: bpy.props.IntProperty(
+    frame_end: bpy.props.IntProperty(
         name="End Frame",
         min=1,
         default=10,
@@ -101,8 +101,8 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
 
         col = layout.column(align=False)
         row = col.row()
-        row.prop(self, "start_frame", text="Frame Range")
-        row.prop(self, "end_frame", text="")
+        row.prop(self, "frame_start", text="Frame Range")
+        row.prop(self, "frame_end", text="")
         col.prop(self, "step")
 
         col.prop(self, "keyframes_only")
@@ -121,31 +121,40 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
 
 
     def invoke(self, context, event):
-        self.start_frame = context.scene.frame_start
-        self.end_frame = context.scene.frame_end
+        self.frame_start = context.scene.frame_start
+        self.frame_end = context.scene.frame_end
 
         return context.window_manager.invoke_props_dialog(self)
 
 
     def execute(self, context):
-        obj = context.object
-        move_axis_index = 'XYZ'.index(self.move_axis)
         print("Starting 'Objects from Shape Keys' operator")
+
+        obj = context.object
+        initial_frame = context.scene.frame_current
+        move_axis_index = 'XYZ'.index(self.move_axis)
 
         # Create the Collection
         duplicates_collection = bpy.data.collections.new(obj.name + "_duplicates")
         obj.users_collection[0].children.link(duplicates_collection)
 
-        # define_frame_range
+        # Define Frame Range
+        if self.frame_start > self.frame_end:
+            self.report({'ERROR'}, "Start frame cannot be higher than the end frame")
+            return {'CANCELLED'}
+
         if self.keyframes_only:
             frame_range = set()
             channelbag = ensure_channelbag(obj.data.shape_keys)
             for fcurve in channelbag.fcurves:
                 if fcurve.data_path.startswith("key_blocks"):
-                    frame_range.update(int(keyframe.co[0]) for keyframe in fcurve.keyframe_points)
-            frame_range &= set(range(self.start_frame, self.end_frame + 1, self.step))
+                    for keyframe in fcurve.keyframe_points:
+                        frame_number = int(keyframe.co[0])
+                        frame_range.add(frame_number)
+
+            frame_range &= set(range(self.frame_start, self.frame_end + 1, self.step))
         else:
-            frame_range = range(self.start_frame, self.end_frame + 1, self.step)
+            frame_range = range(self.frame_start, self.frame_end + 1, self.step)
 
         # Cache meshes in the scene
         scene_objects_cache = {}
@@ -195,7 +204,7 @@ class OBJECT_OT_objects_from_shape_keys(bpy.types.Operator):
         # Reset everything
         context.view_layer.objects.active = obj
         obj.select_set(True)
-        context.scene.frame_set(self.start_frame)
+        context.scene.frame_set(initial_frame)
         if self.hide_duplicates:
             duplicates_collection.hide_viewport = True
 

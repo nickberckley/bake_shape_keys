@@ -42,12 +42,12 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         description = "Bake between frame range start and end as defined in scene properties",
         default = False,
     )
-    start_frame: bpy.props.IntProperty(
+    frame_start: bpy.props.IntProperty(
         name = "Start Frame",
         min = 1,
         default = 1,
     )
-    end_frame: bpy.props.IntProperty(
+    frame_end: bpy.props.IntProperty(
         name = "End Frame",
         min = 1,
         default = 100,
@@ -72,8 +72,8 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         layout.prop(self, "follow_scene_range")
         col = layout.column(align=True)
         row = col.row()
-        row.prop(self, "start_frame", text="Frame Range")
-        row.prop(self, "end_frame", text="")
+        row.prop(self, "frame_start", text="Frame Range")
+        row.prop(self, "frame_end", text="")
         if self.follow_scene_range:
             col.enabled = False
 
@@ -83,17 +83,21 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
         layout.prop(self, "constant_interpolation")
 
     def invoke(self, context, event):
-        self.start_frame = context.scene.frame_start
-        self.end_frame = context.scene.frame_end
+        self.frame_start = context.scene.frame_start
+        self.frame_end = context.scene.frame_end
 
         return context.window_manager.invoke_props_dialog(self)
 
     def execute(self, context):
-        # define_frame_range
+        # Define Frame Range
         initial_frame = context.scene.frame_current
         if self.follow_scene_range:
-            self.start_frame = context.scene.frame_start
-            self.end_frame = context.scene.frame_end
+            self.frame_start = context.scene.frame_start
+            self.frame_end = context.scene.frame_end
+
+        if self.frame_start > self.frame_end:
+            self.report({'ERROR'}, "Start frame cannot be higher than the end frame")
+            return {'CANCELLED'}
 
         # Filter Selection
         objects = self._filter_objects(context)
@@ -106,7 +110,7 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
             basis = shape_keys[0]
 
             # Inserting Keyframes
-            for frame in range(self.start_frame, self.end_frame + 1, self.step):
+            for frame in range(self.frame_start, self.frame_end + 1, self.step):
                 context.scene.frame_set(frame)
                 for key in shape_keys:
                     if key == basis:
@@ -123,7 +127,7 @@ class OBJECT_OT_shape_key_action_bake(bpy.types.Operator):
                         continue
 
                     for keyframe in fcurve.keyframe_points:
-                        if self.start_frame <= keyframe.co[0] <= self.end_frame:
+                        if self.frame_start <= keyframe.co[0] <= self.frame_end:
                             keyframe.interpolation = 'CONSTANT'
 
         context.scene.frame_set(initial_frame)
